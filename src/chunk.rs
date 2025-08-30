@@ -140,7 +140,6 @@ pub struct Chunk<'a> {
     pub(crate) env: Result<Option<Table>>,
     pub(crate) mode: Option<ChunkMode>,
     pub(crate) source: IoResult<Cow<'a, [u8]>>,
-    #[cfg(feature = "luau")]
     pub(crate) compiler: Option<Compiler>,
 }
 
@@ -152,8 +151,7 @@ pub enum ChunkMode {
 }
 
 /// Represents a constant value that can be used by Luau compiler.
-#[cfg(any(feature = "luau", doc))]
-#[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+#[cfg_attr(docsrs, doc)]
 #[derive(Clone, Debug)]
 pub enum CompileConstant {
     Nil,
@@ -163,40 +161,34 @@ pub enum CompileConstant {
     String(StdString),
 }
 
-#[cfg(any(feature = "luau", doc))]
 impl From<bool> for CompileConstant {
     fn from(b: bool) -> Self {
         CompileConstant::Boolean(b)
     }
 }
 
-#[cfg(any(feature = "luau", doc))]
 impl From<crate::Number> for CompileConstant {
     fn from(n: crate::Number) -> Self {
         CompileConstant::Number(n)
     }
 }
 
-#[cfg(any(feature = "luau", doc))]
 impl From<crate::Vector> for CompileConstant {
     fn from(v: crate::Vector) -> Self {
         CompileConstant::Vector(v)
     }
 }
 
-#[cfg(any(feature = "luau", doc))]
 impl From<&str> for CompileConstant {
     fn from(s: &str) -> Self {
         CompileConstant::String(s.to_owned())
     }
 }
 
-#[cfg(any(feature = "luau", doc))]
 type LibraryMemberConstantMap = HashMap<(StdString, StdString), CompileConstant>;
 
 /// Luau compiler
-#[cfg(any(feature = "luau", doc))]
-#[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+#[cfg_attr(docsrs, doc)]
 #[derive(Clone, Debug)]
 pub struct Compiler {
     optimization_level: u8,
@@ -213,14 +205,12 @@ pub struct Compiler {
     disabled_builtins: Vec<StdString>,
 }
 
-#[cfg(any(feature = "luau", doc))]
 impl Default for Compiler {
     fn default() -> Self {
         const { Self::new() }
     }
 }
 
-#[cfg(any(feature = "luau", doc))]
 impl Compiler {
     /// Creates Luau compiler instance with default options
     pub const fn new() -> Self {
@@ -433,7 +423,6 @@ impl Compiler {
             static LIBRARY_MEMBER_CONSTANT_MAP: RefCell<LibraryMemberConstantMap> = Default::default();
         }
 
-        #[cfg(feature = "luau")]
         unsafe extern "C-unwind" fn library_member_constant_callback(
             library: *const c_char,
             member: *const c_char,
@@ -450,9 +439,9 @@ impl Compiler {
                         }
                         CompileConstant::Number(n) => ffi::luau_set_compile_constant_number(constant, *n),
                         CompileConstant::Vector(v) => {
-                            #[cfg(not(feature = "luau-vector4"))]
+                            #[cfg(not(feature = "vector4"))]
                             ffi::luau_set_compile_constant_vector(constant, v.x(), v.y(), v.z(), 0.0);
-                            #[cfg(feature = "luau-vector4")]
+                            #[cfg(feature = "vector4")]
                             ffi::luau_set_compile_constant_vector(constant, v.x(), v.y(), v.z(), v.w());
                         }
                         CompileConstant::String(s) => ffi::luau_set_compile_constant_string(
@@ -664,12 +653,6 @@ impl Chunk<'_> {
     fn compile(&mut self) {
         if let Ok(ref source) = self.source {
             if self.detect_mode() == ChunkMode::Text {
-                #[cfg(feature = "luau")]
-                if let Ok(data) = self.compiler.get_or_insert_with(Default::default).compile(source) {
-                    self.source = Ok(Cow::Owned(data));
-                    self.mode = Some(ChunkMode::Binary);
-                }
-                #[cfg(not(feature = "luau"))]
                 if let Ok(func) = self.lua.lock().load_chunk(None, None, None, source.as_ref()) {
                     let data = func.dump(false);
                     self.source = Ok(Cow::Owned(data));
@@ -749,11 +732,6 @@ impl Chunk<'_> {
             return mode;
         }
         if let Ok(source) = &self.source {
-            #[cfg(not(feature = "luau"))]
-            if source.starts_with(ffi::LUA_SIGNATURE) {
-                return ChunkMode::Binary;
-            }
-            #[cfg(feature = "luau")]
             if *source.first().unwrap_or(&u8::MAX) < b'\n' {
                 return ChunkMode::Binary;
             }

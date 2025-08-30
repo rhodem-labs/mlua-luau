@@ -1,55 +1,41 @@
 [package]
-name = "mlua"
-version = "0.11.3" # remember to update mlua_derive
-authors = ["Aleksandr Orlenko <zxteam@pm.me>", "kyren <catherine@kyju.org>"]
+name = "mlua-luau"
+version = "0.11.3" # remember to update mlua-macros
+authors = ["Luc Rodiguez <labs@rhodem.com>", "Aleksandr Orlenko <zxteam@pm.me>", "kyren <catherine@kyju.org>"]
 rust-version = "1.79.0"
 edition = "2021"
-repository = "https://github.com/mlua-rs/mlua"
-documentation = "https://docs.rs/mlua"
+repository = "https://github.com/rhodem-labs/mlua-luau"
+documentation = "https://docs.rs/mlua-luau"
 readme = "README.md"
-keywords = ["lua", "luajit", "luau", "async", "scripting"]
+keywords = ["lua", "luau", "async", "scripting"]
 categories = ["api-bindings", "asynchronous"]
 license = "MIT"
 description = """
-High level bindings to Lua 5.4/5.3/5.2/5.1 (including LuaJIT) and Luau
-with async/await features and support of writing native Lua modules in Rust.
+High level bindings to Luau
 """
 
 [package.metadata.docs.rs]
-features = ["lua54", "vendored", "async", "send", "serde", "macros"]
+features = ["async", "send", "serde", "macros"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [workspace]
 members = [
-    "mlua_derive",
+    "mlua-macros",
     "mlua-sys",
 ]
 
 [features]
-lua54 = ["ffi/lua54"]
-lua53 = ["ffi/lua53"]
-lua52 = ["ffi/lua52"]
-lua51 = ["ffi/lua51"]
-luajit = ["ffi/luajit"]
-luajit52 = ["luajit", "ffi/luajit52"]
-luau = ["ffi/luau"]
-luau-jit = ["luau", "ffi/luau-codegen"]
-luau-vector4 = ["luau", "ffi/luau-vector4"]
-vendored = ["ffi/vendored"]
-module = ["mlua_derive", "ffi/module"]
+vector4 = ["ffi/vector4"]
 async = ["dep:futures-util"]
 send = ["error-send"]
 error-send = []
 serde = ["dep:serde", "dep:erased-serde", "dep:serde-value", "bstr/serde"]
-macros = ["mlua_derive/macros"]
+macros = ["mlua-macros/macros"]
 anyhow = ["dep:anyhow", "error-send"]
 userdata-wrappers = ["parking_lot/send_guard"]
 
-# deprecated features
-serialize = ["serde"]
-
 [dependencies]
-mlua_derive = { version = "=0.11.0", optional = true, path = "mlua_derive" }
+mlua-macros = { version = "=0.11.0", optional = true, path = "mlua-macros" }
 bstr = { version = "1.0", features = ["std"], default-features = false }
 either = "1.0"
 num-traits = { version = "0.2.14" }

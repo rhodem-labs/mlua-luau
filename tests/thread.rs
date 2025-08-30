@@ -140,20 +140,9 @@ fn test_thread_reset() -> Result<()> {
     let _ = thread.resume::<AnyUserData>(MyUserData(arc.clone()));
     assert_eq!(thread.status(), ThreadStatus::Error);
     assert_eq!(Arc::strong_count(&arc), 2);
-    #[cfg(feature = "lua54")]
-    {
-        assert!(thread.reset(func.clone()).is_err());
-        // Reset behavior has changed in Lua v5.4.4
-        // It's became possible to force reset thread by popping error object
-        assert!(matches!(thread.status(), ThreadStatus::Finished));
-        assert!(thread.reset(func.clone()).is_ok());
-        assert_eq!(thread.status(), ThreadStatus::Resumable);
-    }
-    #[cfg(any(feature = "lua54", feature = "luau"))]
-    {
-        assert!(thread.reset(func.clone()).is_ok());
-        assert_eq!(thread.status(), ThreadStatus::Resumable);
-    }
+
+    assert!(thread.reset(func.clone()).is_ok());
+    assert_eq!(thread.status(), ThreadStatus::Resumable);
 
     // Try reset running thread
     let thread = lua.create_thread(lua.create_function(|lua, ()| {
@@ -180,18 +169,7 @@ fn test_coroutine_from_closure() -> Result<()> {
     let thrd_main = lua.create_function(|_, ()| Ok(()))?;
     lua.globals().set("main", thrd_main)?;
 
-    #[cfg(any(
-        feature = "lua54",
-        feature = "lua53",
-        feature = "lua52",
-        feature = "luajit",
-        feature = "luau"
-    ))]
     let thrd: Thread = lua.load("coroutine.create(main)").eval()?;
-    #[cfg(feature = "lua51")]
-    let thrd: Thread = lua
-        .load("coroutine.create(function(...) return main(unpack(arg)) end)")
-        .eval()?;
 
     thrd.resume::<()>(())?;
 
@@ -229,7 +207,6 @@ fn test_thread_pointer() -> Result<()> {
 }
 
 #[test]
-#[cfg(feature = "luau")]
 fn test_thread_resume_error() -> Result<()> {
     let lua = Lua::new();
 

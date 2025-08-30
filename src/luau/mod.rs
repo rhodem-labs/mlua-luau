@@ -16,8 +16,6 @@ pub use require::{NavigateError, Require, TextRequirer};
 impl Lua {
     /// Create a custom Luau `require` function using provided [`Require`] implementation to find
     /// and load modules.
-    #[cfg(any(feature = "luau", doc))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
     pub fn create_require_function<R: Require + MaybeSend + 'static>(&self, require: R) -> Result<Function> {
         require::create_require_function(self, require)
     }

@@ -15,8 +15,6 @@ use crate::table::Table;
 use crate::types::MaybeSend;
 
 /// An error that can occur during navigation in the Luau `require-by-string` system.
-#[cfg(any(feature = "luau", doc))]
-#[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
 #[derive(Debug, Clone)]
 pub enum NavigateError {
     Ambiguous,
@@ -24,12 +22,10 @@ pub enum NavigateError {
     Other(Error),
 }
 
-#[cfg(feature = "luau")]
 trait IntoNavigateResult {
     fn into_nav_result(self) -> Result<ffi::luarequire_NavigateResult>;
 }
 
-#[cfg(feature = "luau")]
 impl IntoNavigateResult for StdResult<(), NavigateError> {
     fn into_nav_result(self) -> Result<ffi::luarequire_NavigateResult> {
         match self {
@@ -47,12 +43,9 @@ impl From<Error> for NavigateError {
     }
 }
 
-#[cfg(feature = "luau")]
 type WriteResult = ffi::luarequire_WriteResult;
 
 /// A trait for handling modules loading and navigation in the Luau `require-by-string` system.
-#[cfg(any(feature = "luau", doc))]
-#[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
 pub trait Require {
     /// Returns `true` if "require" is permitted for the given chunk name.
     fn is_require_allowed(&self, chunk_name: &str) -> bool;
@@ -344,7 +337,6 @@ macro_rules! try_borrow_mut {
     };
 }
 
-#[cfg(feature = "luau")]
 pub(super) unsafe extern "C-unwind" fn init_config(config: *mut ffi::luarequire_Configuration) {
     if config.is_null() {
         return;
@@ -496,7 +488,6 @@ pub(super) unsafe extern "C-unwind" fn init_config(config: *mut ffi::luarequire_
 }
 
 /// Helper function to write data to a buffer
-#[cfg(feature = "luau")]
 unsafe fn write_to_buffer(
     buffer: *mut c_char,
     buffer_size: usize,
@@ -516,7 +507,6 @@ unsafe fn write_to_buffer(
     WriteResult::Success
 }
 
-#[cfg(feature = "luau")]
 pub(super) fn create_require_function<R: Require + MaybeSend + 'static>(
     lua: &Lua,
     require: R,

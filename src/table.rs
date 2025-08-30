@@ -245,7 +245,6 @@ impl Table {
         let lua = self.0.lua.lock();
         let state = lua.state();
         unsafe {
-            #[cfg(feature = "luau")]
             self.check_readonly_write(&lua)?;
 
             let _sg = StackGuard::new(state);
@@ -315,7 +314,6 @@ impl Table {
         let lua = self.0.lua.lock();
         let state = lua.state();
         unsafe {
-            #[cfg(feature = "luau")]
             self.check_readonly_write(&lua)?;
 
             let _sg = StackGuard::new(state);
@@ -343,7 +341,6 @@ impl Table {
         let lua = self.0.lua.lock();
         let state = lua.state();
         unsafe {
-            #[cfg(feature = "luau")]
             self.check_readonly_write(&lua)?;
 
             let _sg = StackGuard::new(state);
@@ -403,35 +400,8 @@ impl Table {
     pub fn clear(&self) -> Result<()> {
         let lua = self.0.lua.lock();
         unsafe {
-            #[cfg(feature = "luau")]
-            {
-                self.check_readonly_write(&lua)?;
-                ffi::lua_cleartable(lua.ref_thread(), self.0.index);
-            }
-
-            #[cfg(not(feature = "luau"))]
-            {
-                let state = lua.state();
-                check_stack(state, 4)?;
-
-                lua.push_ref(&self.0);
-
-                // Clear array part
-                for i in 1..=ffi::lua_rawlen(state, -1) {
-                    ffi::lua_pushnil(state);
-                    ffi::lua_rawseti(state, -2, i as Integer);
-                }
-
-                // Clear hash part
-                // It must be safe as long as we don't use invalid keys
-                ffi::lua_pushnil(state);
-                while ffi::lua_next(state, -2) != 0 {
-                    ffi::lua_pop(state, 1); // pop value
-                    ffi::lua_pushvalue(state, -1); // copy key
-                    ffi::lua_pushnil(state);
-                    ffi::lua_rawset(state, -4);
-                }
-            }
+            self.check_readonly_write(&lua)?;
+            ffi::lua_cleartable(lua.ref_thread(), self.0.index);
         }
 
         Ok(())
@@ -502,7 +472,6 @@ impl Table {
     /// If `metatable` is `None`, the metatable is removed (if no metatable is set, this does
     /// nothing).
     pub fn set_metatable(&self, metatable: Option<Table>) -> Result<()> {
-        #[cfg(feature = "luau")]
         if self.is_readonly() {
             return Err(Error::runtime("attempt to modify a readonly table"));
         }
@@ -529,8 +498,7 @@ impl Table {
     }
 
     /// Sets `readonly` attribute on the table.
-    #[cfg(any(feature = "luau", doc))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+    #[cfg_attr(docsrs, doc)]
     pub fn set_readonly(&self, enabled: bool) {
         let lua = self.0.lua.lock();
         let ref_thread = lua.ref_thread();
@@ -544,8 +512,7 @@ impl Table {
     }
 
     /// Returns `readonly` attribute of the table.
-    #[cfg(any(feature = "luau", doc))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+    #[cfg_attr(docsrs, doc)]
     pub fn is_readonly(&self) -> bool {
         let lua = self.0.lua.lock();
         let ref_thread = lua.ref_thread();
@@ -561,8 +528,7 @@ impl Table {
     /// - Fast-path for some built-in functions (fastcall).
     ///
     /// For `safeenv` environments, monkey patching or modifying values may not work as expected.
-    #[cfg(any(feature = "luau", doc))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+    #[cfg_attr(docsrs, doc)]
     pub fn set_safeenv(&self, enabled: bool) {
         let lua = self.0.lua.lock();
         unsafe { ffi::lua_setsafeenv(lua.ref_thread(), self.0.index, enabled as _) };
@@ -708,7 +674,6 @@ impl Table {
         let lua = self.0.lua.lock();
         let state = lua.state();
         unsafe {
-            #[cfg(feature = "luau")]
             self.check_readonly_write(&lua)?;
 
             let _sg = StackGuard::new(state);
@@ -744,7 +709,6 @@ impl Table {
         }
     }
 
-    #[cfg(feature = "luau")]
     #[inline(always)]
     fn check_readonly_write(&self, lua: &RawLua) -> Result<()> {
         if unsafe { ffi::lua_getreadonly(lua.ref_thread(), self.0.index) != 0 } {

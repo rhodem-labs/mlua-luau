@@ -1,8 +1,6 @@
 use std::cell::UnsafeCell;
 use std::os::raw::{c_int, c_void};
 
-#[cfg(not(feature = "luau"))]
-use crate::debug::{Debug, HookTriggers};
 use crate::error::Result;
 use crate::state::{ExtraData, Lua, RawLua};
 
@@ -75,41 +73,23 @@ pub enum VmState {
     Yield,
 }
 
-#[cfg(not(feature = "luau"))]
-pub(crate) enum HookKind {
-    Global,
-    Thread(HookTriggers, HookCallback),
-}
-
-#[cfg(all(feature = "send", not(feature = "luau")))]
-pub(crate) type HookCallback = XRc<dyn Fn(&Lua, &Debug) -> Result<VmState> + Send>;
-
-#[cfg(all(not(feature = "send"), not(feature = "luau")))]
-pub(crate) type HookCallback = XRc<dyn Fn(&Lua, &Debug) -> Result<VmState>>;
-
-#[cfg(all(feature = "send", feature = "luau"))]
+#[cfg(feature = "send")]
 pub(crate) type InterruptCallback = XRc<dyn Fn(&Lua) -> Result<VmState> + Send>;
 
-#[cfg(all(not(feature = "send"), feature = "luau"))]
+#[cfg(not(feature = "send"))]
 pub(crate) type InterruptCallback = XRc<dyn Fn(&Lua) -> Result<VmState>>;
 
-#[cfg(all(feature = "send", feature = "luau"))]
+#[cfg(feature = "send")]
 pub(crate) type ThreadCreationCallback = XRc<dyn Fn(&Lua, crate::Thread) -> Result<()> + Send>;
 
-#[cfg(all(not(feature = "send"), feature = "luau"))]
+#[cfg(not(feature = "send"))]
 pub(crate) type ThreadCreationCallback = XRc<dyn Fn(&Lua, crate::Thread) -> Result<()>>;
 
-#[cfg(all(feature = "send", feature = "luau"))]
+#[cfg(feature = "send")]
 pub(crate) type ThreadCollectionCallback = XRc<dyn Fn(crate::LightUserData) + Send>;
 
-#[cfg(all(not(feature = "send"), feature = "luau"))]
+#[cfg(not(feature = "send"))]
 pub(crate) type ThreadCollectionCallback = XRc<dyn Fn(crate::LightUserData)>;
-
-#[cfg(all(feature = "send", feature = "lua54"))]
-pub(crate) type WarnCallback = XRc<dyn Fn(&Lua, &str, bool) -> Result<()> + Send>;
-
-#[cfg(all(not(feature = "send"), feature = "lua54"))]
-pub(crate) type WarnCallback = XRc<dyn Fn(&Lua, &str, bool) -> Result<()>>;
 
 /// A trait that adds `Send` requirement if `send` feature is enabled.
 #[cfg(feature = "send")]

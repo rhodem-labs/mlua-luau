@@ -17,9 +17,6 @@ pub(crate) use userdata::{
     DESTRUCTED_USERDATA_METATABLE,
 };
 
-#[cfg(not(feature = "luau"))]
-pub(crate) use userdata::push_uninit_userdata;
-
 // Checks that Lua has enough free stack space for future stack operations. On failure, this will
 // panic with an internal error message.
 #[inline]
@@ -99,7 +96,6 @@ pub(crate) unsafe fn push_string(state: *mut ffi::lua_State, s: &[u8], protect: 
 }
 
 // Uses 3 stack spaces (when protect), does not call checkstack.
-#[cfg(feature = "luau")]
 #[inline(always)]
 pub(crate) unsafe fn push_buffer(state: *mut ffi::lua_State, size: usize, protect: bool) -> Result<*mut u8> {
     let data = if protect || size > const { 1024 * 1024 * 1024 } {
@@ -219,25 +215,6 @@ pub(crate) unsafe extern "C-unwind" fn safe_xpcall(state: *mut ffi::lua_State) -
 // Returns Lua main thread for Lua >= 5.2 or checks that the passed thread is main for Lua 5.1.
 // Does not call lua_checkstack, uses 1 stack space.
 pub(crate) unsafe fn get_main_state(state: *mut ffi::lua_State) -> Option<*mut ffi::lua_State> {
-    #[cfg(any(feature = "lua54", feature = "lua53", feature = "lua52"))]
-    {
-        ffi::lua_rawgeti(state, ffi::LUA_REGISTRYINDEX, ffi::LUA_RIDX_MAINTHREAD);
-        let main_state = ffi::lua_tothread(state, -1);
-        ffi::lua_pop(state, 1);
-        Some(main_state)
-    }
-    #[cfg(any(feature = "lua51", feature = "luajit"))]
-    {
-        // Check the current state first
-        let is_main_state = ffi::lua_pushthread(state) == 1;
-        ffi::lua_pop(state, 1);
-        if is_main_state {
-            Some(state)
-        } else {
-            None
-        }
-    }
-    #[cfg(feature = "luau")]
     Some(ffi::lua_mainthread(state))
 }
 
@@ -260,14 +237,13 @@ pub(crate) unsafe fn to_string(state: *mut ffi::lua_State, index: c_int) -> Stri
                 i.to_string()
             }
         }
-        #[cfg(feature = "luau")]
         ffi::LUA_TVECTOR => {
             let v = ffi::lua_tovector(state, index);
             mlua_debug_assert!(!v.is_null(), "vector is null");
             let (x, y, z) = (*v, *v.add(1), *v.add(2));
-            #[cfg(not(feature = "luau-vector4"))]
+            #[cfg(not(feature = "vector4"))]
             return format!("vector({x}, {y}, {z})");
-            #[cfg(feature = "luau-vector4")]
+            #[cfg(feature = "vector4")]
             return format!("vector({x}, {y}, {z}, {w})", w = *v.add(3));
         }
         ffi::LUA_TSTRING => {
@@ -281,7 +257,6 @@ pub(crate) unsafe fn to_string(state: *mut ffi::lua_State, index: c_int) -> Stri
         ffi::LUA_TFUNCTION => format!("<function {:?}>", ffi::lua_topointer(state, index)),
         ffi::LUA_TUSERDATA => format!("<userdata {:?}>", ffi::lua_topointer(state, index)),
         ffi::LUA_TTHREAD => format!("<thread {:?}>", ffi::lua_topointer(state, index)),
-        #[cfg(feature = "luau")]
         ffi::LUA_TBUFFER => format!("<buffer {:?}>", ffi::lua_topointer(state, index)),
         type_id => {
             let type_name = CStr::from_ptr(ffi::lua_typename(state, type_id)).to_string_lossy();
@@ -292,17 +267,7 @@ pub(crate) unsafe fn to_string(state: *mut ffi::lua_State, index: c_int) -> Stri
 
 #[inline(always)]
 pub(crate) unsafe fn get_metatable_ptr(state: *mut ffi::lua_State, index: c_int) -> *const c_void {
-    #[cfg(feature = "luau")]
     return ffi::lua_getmetatablepointer(state, index);
-
-    #[cfg(not(feature = "luau"))]
-    if ffi::lua_getmetatable(state, index) == 0 {
-        ptr::null()
-    } else {
-        let p = ffi::lua_topointer(state, -1);
-        ffi::lua_pop(state, 1);
-        p
-    }
 }
 
 pub(crate) unsafe fn ptr_to_str<'a>(input: *const c_char) -> Option<&'a str> {

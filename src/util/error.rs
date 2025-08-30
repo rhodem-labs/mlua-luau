@@ -253,7 +253,6 @@ where
 pub(crate) unsafe extern "C-unwind" fn error_traceback(state: *mut ffi::lua_State) -> c_int {
     // Luau calls error handler for memory allocation errors, skip it
     // See https://github.com/luau-lang/luau/issues/880
-    #[cfg(feature = "luau")]
     if MemoryState::limit_reached(state) {
         return 0;
     }
@@ -373,20 +372,7 @@ pub(crate) unsafe fn init_error_registry(state: *mut ffi::lua_State) -> Result<(
         "__mod",
         "__pow",
         "__unm",
-        #[cfg(any(feature = "lua54", feature = "lua53", feature = "luau"))]
         "__idiv",
-        #[cfg(any(feature = "lua54", feature = "lua53"))]
-        "__band",
-        #[cfg(any(feature = "lua54", feature = "lua53"))]
-        "__bor",
-        #[cfg(any(feature = "lua54", feature = "lua53"))]
-        "__bxor",
-        #[cfg(any(feature = "lua54", feature = "lua53"))]
-        "__bnot",
-        #[cfg(any(feature = "lua54", feature = "lua53"))]
-        "__shl",
-        #[cfg(any(feature = "lua54", feature = "lua53"))]
-        "__shr",
         "__concat",
         "__len",
         "__eq",
@@ -396,14 +382,7 @@ pub(crate) unsafe fn init_error_registry(state: *mut ffi::lua_State) -> Result<(
         "__newindex",
         "__call",
         "__tostring",
-        #[cfg(any(feature = "lua54", feature = "lua53", feature = "lua52", feature = "luajit52"))]
-        "__pairs",
-        #[cfg(any(feature = "lua53", feature = "lua52", feature = "luajit52"))]
-        "__ipairs",
-        #[cfg(feature = "luau")]
         "__iter",
-        #[cfg(feature = "lua54")]
-        "__close",
     ] {
         ffi::lua_pushvalue(state, -1);
         rawset_field(state, -3, method)?;

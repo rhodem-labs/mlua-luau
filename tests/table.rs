@@ -149,15 +149,12 @@ fn test_table_clear() -> Result<()> {
     let t = lua.create_table()?;
 
     // Check readonly error
-    #[cfg(feature = "luau")]
-    {
-        t.set_readonly(true);
-        assert!(matches!(
-            t.clear(),
-            Err(Error::RuntimeError(err)) if err.contains("attempt to modify a readonly table")
-        ));
-        t.set_readonly(false);
-    }
+    t.set_readonly(true);
+    assert!(matches!(
+        t.clear(),
+        Err(Error::RuntimeError(err)) if err.contains("attempt to modify a readonly table")
+    ));
+    t.set_readonly(false);
 
     // Set array and hash parts
     t.push("abc")?;

@@ -53,8 +53,7 @@ pub struct FunctionInfo {
 }
 
 /// Luau function coverage snapshot.
-#[cfg(any(feature = "luau", doc))]
-#[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+#[cfg_attr(docsrs, doc)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CoverageInfo {
     pub function: Option<String>,
@@ -274,17 +273,7 @@ impl Function {
                 return None;
             }
 
-            #[cfg(any(feature = "lua51", feature = "luajit", feature = "luau"))]
             ffi::lua_getfenv(state, -1);
-            #[cfg(any(feature = "lua54", feature = "lua53", feature = "lua52"))]
-            for i in 1..=255 {
-                // Traverse upvalues until we find the _ENV one
-                match ffi::lua_getupvalue(state, -1, i) {
-                    s if s.is_null() => break,
-                    s if std::ffi::CStr::from_ptr(s as _) == c"_ENV" => break,
-                    _ => ffi::lua_pop(state, 1),
-                }
-            }
 
             if ffi::lua_type(state, -1) != ffi::LUA_TTABLE {
                 return None;
@@ -311,31 +300,8 @@ impl Function {
                 return Ok(false);
             }
 
-            #[cfg(any(feature = "lua51", feature = "luajit", feature = "luau"))]
-            {
-                lua.push_ref(&env.0);
-                ffi::lua_setfenv(state, -2);
-            }
-            #[cfg(any(feature = "lua54", feature = "lua53", feature = "lua52"))]
-            for i in 1..=255 {
-                match ffi::lua_getupvalue(state, -1, i) {
-                    s if s.is_null() => return Ok(false),
-                    s if std::ffi::CStr::from_ptr(s as _) == c"_ENV" => {
-                        ffi::lua_pop(state, 1);
-                        // Create an anonymous function with the new environment
-                        let f_with_env = lua
-                            .lua()
-                            .load("return _ENV")
-                            .set_environment(env)
-                            .try_cache()
-                            .into_function()?;
-                        lua.push_ref(&f_with_env.0);
-                        ffi::lua_upvaluejoin(state, -2, i, -1, 1);
-                        break;
-                    }
-                    _ => ffi::lua_pop(state, 1),
-                }
-            }
+            lua.push_ref(&env.0);
+            ffi::lua_setfenv(state, -2);
 
             Ok(true)
         }
@@ -355,73 +321,19 @@ impl Function {
 
             let mut ar: ffi::lua_Debug = mem::zeroed();
             lua.push_ref(&self.0);
-            #[cfg(not(feature = "luau"))]
-            let res = ffi::lua_getinfo(state, cstr!(">Sn"), &mut ar);
-            #[cfg(feature = "luau")]
             let res = ffi::lua_getinfo(state, -1, cstr!("sn"), &mut ar);
             mlua_assert!(res != 0, "lua_getinfo failed with `>Sn`");
 
             FunctionInfo {
                 name: ptr_to_lossy_str(ar.name).map(|s| s.into_owned()),
-                #[cfg(not(feature = "luau"))]
-                name_what: match ptr_to_str(ar.namewhat) {
-                    Some("") => None,
-                    val => val,
-                },
-                #[cfg(feature = "luau")]
                 name_what: None,
                 what: ptr_to_str(ar.what).unwrap_or("main"),
                 source: ptr_to_lossy_str(ar.source).map(|s| s.into_owned()),
-                #[cfg(not(feature = "luau"))]
-                short_src: ptr_to_lossy_str(ar.short_src.as_ptr()).map(|s| s.into_owned()),
-                #[cfg(feature = "luau")]
                 short_src: ptr_to_lossy_str(ar.short_src).map(|s| s.into_owned()),
                 line_defined: linenumber_to_usize(ar.linedefined),
-                #[cfg(not(feature = "luau"))]
-                last_line_defined: linenumber_to_usize(ar.lastlinedefined),
-                #[cfg(feature = "luau")]
                 last_line_defined: None,
             }
         }
-    }
-
-    /// Dumps the function as a binary chunk.
-    ///
-    /// If `strip` is true, the binary representation may not include all debug information
-    /// about the function, to save space.
-    ///
-    /// For Luau a [`Compiler`] can be used to compile Lua chunks to bytecode.
-    ///
-    /// [`Compiler`]: crate::chunk::Compiler
-    #[cfg(not(feature = "luau"))]
-    #[cfg_attr(docsrs, doc(cfg(not(feature = "luau"))))]
-    pub fn dump(&self, strip: bool) -> Vec<u8> {
-        unsafe extern "C-unwind" fn writer(
-            _state: *mut ffi::lua_State,
-            buf: *const c_void,
-            buf_len: usize,
-            data: *mut c_void,
-        ) -> c_int {
-            let data = &mut *(data as *mut Vec<u8>);
-            let buf = slice::from_raw_parts(buf as *const u8, buf_len);
-            data.extend_from_slice(buf);
-            0
-        }
-
-        let lua = self.0.lua.lock();
-        let state = lua.state();
-        let mut data: Vec<u8> = Vec::new();
-        unsafe {
-            let _sg = StackGuard::new(state);
-            assert_stack(state, 1);
-
-            lua.push_ref(&self.0);
-            let data_ptr = &mut data as *mut Vec<u8> as *mut c_void;
-            ffi::lua_dump(state, writer, data_ptr, strip as i32);
-            ffi::lua_pop(state, 1);
-        }
-
-        data
     }
 
     /// Retrieves recorded coverage information about this Lua function including inner calls.
@@ -432,8 +344,7 @@ impl Function {
     /// Recording of coverage information is controlled by [`Compiler::set_coverage_level`] option.
     ///
     /// [`Compiler::set_coverage_level`]: crate::chunk::Compiler::set_coverage_level
-    #[cfg(any(feature = "luau", doc))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+    #[cfg_attr(docsrs, doc)]
     pub fn coverage<F>(&self, func: F)
     where
         F: FnMut(CoverageInfo),
@@ -494,8 +405,7 @@ impl Function {
     /// Copies the function prototype and all its upvalues to the
     /// newly created function.
     /// This function returns shallow clone (same handle) for Rust/C functions.
-    #[cfg(any(feature = "luau", doc))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+    #[cfg_attr(docsrs, doc)]
     pub fn deep_clone(&self) -> Result<Self> {
         let lua = self.0.lua.lock();
         let state = lua.state();

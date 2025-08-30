@@ -8,12 +8,6 @@ use crate::traits::{FromLuaMulti, IntoLuaMulti};
 use crate::types::{LuaType, ValueRef};
 use crate::util::{check_stack, error_traceback_thread, pop_error, StackGuard};
 
-#[cfg(not(feature = "luau"))]
-use crate::{
-    debug::{Debug, HookTriggers},
-    types::HookKind,
-};
-
 #[cfg(feature = "async")]
 use {
     futures_util::stream::Stream,
@@ -176,8 +170,7 @@ impl Thread {
     /// Resumes execution of this thread, immediately raising an error.
     ///
     /// This is a Luau specific extension.
-    #[cfg(feature = "luau")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+    #[cfg_attr(docsrs, doc)]
     pub fn resume_error<R>(&self, error: impl crate::IntoLua) -> Result<R>
     where
         R: FromLuaMulti,
@@ -213,9 +206,6 @@ impl Thread {
         let state = lua.state();
         let thread_state = self.state();
         let mut nresults = 0;
-        #[cfg(not(feature = "luau"))]
-        let ret = ffi::lua_resume(thread_state, state, nargs, &mut nresults as *mut c_int);
-        #[cfg(feature = "luau")]
         let ret = ffi::lua_resumex(thread_state, state, nargs, &mut nresults as *mut c_int);
         match ret {
             ffi::LUA_OK => Ok((ThreadStatusInner::Finished, nresults)),
@@ -259,39 +249,6 @@ impl Thread {
         }
     }
 
-    /// Sets a hook function that will periodically be called as Lua code executes.
-    ///
-    /// This function is similar or [`Lua::set_hook`] except that it sets for the thread.
-    /// You can have multiple hooks for different threads.
-    ///
-    /// To remove a hook call [`Thread::remove_hook`].
-    ///
-    /// [`Lua::set_hook`]: crate::Lua::set_hook
-    #[cfg(not(feature = "luau"))]
-    #[cfg_attr(docsrs, doc(cfg(not(feature = "luau"))))]
-    pub fn set_hook<F>(&self, triggers: HookTriggers, callback: F) -> Result<()>
-    where
-        F: Fn(&crate::Lua, &Debug) -> Result<crate::VmState> + crate::MaybeSend + 'static,
-    {
-        let lua = self.0.lua.lock();
-        unsafe {
-            lua.set_thread_hook(
-                self.state(),
-                HookKind::Thread(triggers, crate::types::XRc::new(callback)),
-            )
-        }
-    }
-
-    /// Removes any hook function from this thread.
-    #[cfg(not(feature = "luau"))]
-    #[cfg_attr(docsrs, doc(cfg(not(feature = "luau"))))]
-    pub fn remove_hook(&self) {
-        let _lua = self.0.lua.lock();
-        unsafe {
-            ffi::lua_sethook(self.state(), None, 0, 0);
-        }
-    }
-
     /// Resets a thread
     ///
     /// In [Lua 5.4]: cleans its call stack and closes all pending to-be-closed variables.
@@ -316,12 +273,9 @@ impl Thread {
             // Push function to the top of the thread stack
             ffi::lua_xpush(lua.ref_thread(), thread_state, func.0.index);
 
-            #[cfg(feature = "luau")]
-            {
-                // Inherit `LUA_GLOBALSINDEX` from the main thread
-                ffi::lua_xpush(lua.main_state(), thread_state, ffi::LUA_GLOBALSINDEX);
-                ffi::lua_replace(thread_state, ffi::LUA_GLOBALSINDEX);
-            }
+            // Inherit `LUA_GLOBALSINDEX` from the main thread
+            ffi::lua_xpush(lua.main_state(), thread_state, ffi::LUA_GLOBALSINDEX);
+            ffi::lua_replace(thread_state, ffi::LUA_GLOBALSINDEX);
 
             Ok(())
         }
@@ -336,26 +290,9 @@ impl Thread {
             }
             ThreadStatusInner::Running => Err(Error::runtime("cannot reset a running thread")),
             ThreadStatusInner::Finished => Ok(()),
-            #[cfg(not(any(feature = "lua54", feature = "luau")))]
-            ThreadStatusInner::Yielded(_) | ThreadStatusInner::Error => {
-                Err(Error::runtime("cannot reset non-finished thread"))
-            }
-            #[cfg(any(feature = "lua54", feature = "luau"))]
             ThreadStatusInner::Yielded(_) | ThreadStatusInner::Error => {
                 let thread_state = self.state();
 
-                #[cfg(all(feature = "lua54", not(feature = "vendored")))]
-                let status = ffi::lua_resetthread(thread_state);
-                #[cfg(all(feature = "lua54", feature = "vendored"))]
-                let status = {
-                    let lua = self.0.lua.lock();
-                    ffi::lua_closethread(thread_state, lua.state())
-                };
-                #[cfg(feature = "lua54")]
-                if status != ffi::LUA_OK {
-                    return Err(pop_error(thread_state, status));
-                }
-                #[cfg(feature = "luau")]
                 ffi::lua_resetthread(thread_state);
 
                 Ok(())
@@ -472,8 +409,7 @@ impl Thread {
     /// # #[cfg(not(feature = "luau"))]
     /// # fn main() { }
     /// ```
-    #[cfg(any(feature = "luau", doc))]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+    #[cfg_attr(docsrs, doc)]
     pub fn sandbox(&self) -> Result<()> {
         let lua = self.0.lua.lock();
         let state = lua.state();

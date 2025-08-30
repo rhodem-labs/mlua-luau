@@ -442,37 +442,6 @@ async fn test_async_userdata() -> Result<()> {
                 sleep_ms(n).await;
                 Ok(format!("elapsed:{}ms", n))
             });
-
-            #[cfg(not(any(feature = "lua51", feature = "luau")))]
-            methods.add_async_meta_method(mlua::MetaMethod::Call, |_, data, ()| async move {
-                let n = data.0;
-                sleep_ms(n).await;
-                Ok(format!("elapsed:{}ms", n))
-            });
-
-            #[cfg(not(any(feature = "lua51", feature = "luau")))]
-            methods.add_async_meta_method(mlua::MetaMethod::Index, |_, data, key: String| async move {
-                sleep_ms(10).await;
-                match key.as_str() {
-                    "ms" => Ok(Some(data.0 as f64)),
-                    "s" => Ok(Some((data.0 as f64) / 1000.0)),
-                    _ => Ok(None),
-                }
-            });
-
-            #[cfg(not(any(feature = "lua51", feature = "luau")))]
-            methods.add_async_meta_method_mut(
-                mlua::MetaMethod::NewIndex,
-                |_, mut data, (key, value): (String, f64)| async move {
-                    sleep_ms(10).await;
-                    match key.as_str() {
-                        "ms" => data.0 = value as u64,
-                        "s" => data.0 = (value * 1000.0) as u64,
-                        _ => return Err(Error::external(format!("key '{}' not found", key))),
-                    }
-                    Ok(())
-                },
-            );
         }
     }
 
@@ -493,30 +462,11 @@ async fn test_async_userdata() -> Result<()> {
     .exec_async()
     .await?;
 
-    #[cfg(not(any(feature = "lua51", feature = "luau")))]
-    lua.load(
-        r#"
-        userdata:set_value(15)
-        assert(userdata() == "elapsed:15ms")
-
-        userdata.ms = 2000
-        assert(userdata.s == 2)
-
-        userdata.s = 15
-        assert(userdata.ms == 15000)
-    "#,
-    )
-    .exec_async()
-    .await?;
-
     // ObjectLike methods
     userdata.call_async_method::<()>("set_value", 24).await?;
     let n: u64 = userdata.call_async_method("get_value", ()).await?;
     assert_eq!(n, 24);
     userdata.call_async_function::<()>("sleep", 15).await?;
-
-    #[cfg(not(any(feature = "lua51", feature = "luau")))]
-    assert_eq!(userdata.call_async::<String>(()).await?, "elapsed:24ms");
 
     Ok(())
 }
@@ -636,34 +586,6 @@ async fn test_async_task_abort() -> Result<()> {
         .await;
     local.await;
     assert_eq!(lua.globals().get::<Value>("result")?, Value::Nil);
-
-    Ok(())
-}
-
-#[tokio::test]
-#[cfg(not(feature = "luau"))]
-async fn test_async_hook() -> Result<()> {
-    use std::sync::atomic::{AtomicBool, Ordering};
-
-    let lua = Lua::new();
-
-    static HOOK_CALLED: AtomicBool = AtomicBool::new(false);
-    lua.set_global_hook(mlua::HookTriggers::new().every_line(), move |_, _| {
-        if !HOOK_CALLED.swap(true, Ordering::Relaxed) {
-            #[cfg(any(feature = "lu53", feature = "lua54"))]
-            return Ok(mlua::VmState::Yield);
-        }
-        Ok(mlua::VmState::Continue)
-    })?;
-
-    let sleep = lua.create_async_function(move |_lua, n: u64| async move {
-        sleep_ms(n).await;
-        Ok(())
-    })?;
-    lua.globals().set("sleep", sleep)?;
-
-    lua.load(r"sleep(100)").exec_async().await?;
-    assert!(HOOK_CALLED.load(Ordering::Relaxed));
 
     Ok(())
 }

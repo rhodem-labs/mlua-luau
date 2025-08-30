@@ -11,87 +11,8 @@ use crate::types::ValueRef;
 /// See the buffer [documentation] for more information.
 ///
 /// [documentation]: https://luau.org/library#buffer-library
-#[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Buffer(pub(crate) ValueRef);
-
-#[cfg_attr(not(feature = "luau"), allow(unused))]
-impl Buffer {
-    /// Copies the buffer data into a new `Vec<u8>`.
-    pub fn to_vec(&self) -> Vec<u8> {
-        let lua = self.0.lua.lock();
-        self.as_slice(&lua).to_vec()
-    }
-
-    /// Returns the length of the buffer.
-    pub fn len(&self) -> usize {
-        let lua = self.0.lua.lock();
-        self.as_slice(&lua).len()
-    }
-
-    /// Returns `true` if the buffer is empty.
-    pub fn is_empty(&self) -> bool {
-        self.len() == 0
-    }
-
-    /// Reads given number of bytes from the buffer at the given offset.
-    ///
-    /// Offset is 0-based.
-    #[track_caller]
-    pub fn read_bytes<const N: usize>(&self, offset: usize) -> [u8; N] {
-        let lua = self.0.lua.lock();
-        let data = self.as_slice(&lua);
-        let mut bytes = [0u8; N];
-        bytes.copy_from_slice(&data[offset..offset + N]);
-        bytes
-    }
-
-    /// Writes given bytes to the buffer at the given offset.
-    ///
-    /// Offset is 0-based.
-    #[track_caller]
-    pub fn write_bytes(&self, offset: usize, bytes: &[u8]) {
-        let lua = self.0.lua.lock();
-        let data = self.as_slice_mut(&lua);
-        data[offset..offset + bytes.len()].copy_from_slice(bytes);
-    }
-
-    /// Returns an adaptor implementing [`io::Read`], [`io::Write`] and [`io::Seek`] over the
-    /// buffer.
-    ///
-    /// Buffer operations are infallible, none of the read/write functions will return a Err.
-    pub fn cursor(self) -> impl io::Read + io::Write + io::Seek {
-        BufferCursor(self, 0)
-    }
-
-    pub(crate) fn as_slice(&self, lua: &RawLua) -> &[u8] {
-        unsafe {
-            let (buf, size) = self.as_raw_parts(lua);
-            std::slice::from_raw_parts(buf, size)
-        }
-    }
-
-    #[allow(clippy::mut_from_ref)]
-    fn as_slice_mut(&self, lua: &RawLua) -> &mut [u8] {
-        unsafe {
-            let (buf, size) = self.as_raw_parts(lua);
-            std::slice::from_raw_parts_mut(buf, size)
-        }
-    }
-
-    #[cfg(feature = "luau")]
-    unsafe fn as_raw_parts(&self, lua: &RawLua) -> (*mut u8, usize) {
-        let mut size = 0usize;
-        let buf = ffi::lua_tobuffer(lua.ref_thread(), self.0.index, &mut size);
-        mlua_assert!(!buf.is_null(), "invalid Luau buffer");
-        (buf as *mut u8, size)
-    }
-
-    #[cfg(not(feature = "luau"))]
-    unsafe fn as_raw_parts(&self, lua: &RawLua) -> (*mut u8, usize) {
-        unreachable!()
-    }
-}
 
 struct BufferCursor(Buffer, usize);
 
@@ -161,7 +82,6 @@ impl Serialize for Buffer {
     }
 }
 
-#[cfg(feature = "luau")]
 impl crate::types::LuaType for Buffer {
     const TYPE_ID: std::os::raw::c_int = ffi::LUA_TBUFFER;
 }

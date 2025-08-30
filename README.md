@@ -36,17 +36,7 @@ WebAssembly (WASM) is supported through `wasm32-unknown-emscripten` target for a
 `mlua` uses feature flags to reduce the amount of dependencies and compiled code, and allow to choose only required set of features.
 Below is a list of the available feature flags. By default `mlua` does not enable any features.
 
-* `lua54`: enable Lua [5.4] support
-* `lua53`: enable Lua [5.3] support
-* `lua52`: enable Lua [5.2] support
-* `lua51`: enable Lua [5.1] support
-* `luajit`: enable [LuaJIT] support
-* `luajit52`: enable [LuaJIT] support with partial compatibility with Lua 5.2
-* `luau`: enable [Luau] support (auto vendored mode)
-* `luau-jit`: enable [Luau] support with JIT backend.
-* `luau-vector4`: enable [Luau] support with 4-dimensional vector.
-* `vendored`: build static Lua(JIT) libraries from sources during `mlua` compilation using [lua-src] or [luajit-src]
-* `module`: enable module mode (building loadable `cdylib` library for Lua)
+* `vector4`: enable [Luau] support with 4-dimensional vector.
 * `async`: enable async/await support (any executor can be used, eg. [tokio] or [async-std])
 * `send`: make `mlua::Lua: Send + Sync` (adds [`Send`] requirement to `mlua::Function` and `mlua::UserData`)
 * `error-send`: make `mlua:Error: Send + Sync`

@@ -363,7 +363,6 @@ unsafe fn init_userdata_metatable_index(state: *mut ffi::lua_State) -> Result<()
         ffi::lua_pushcfunction(state, lua_istable_impl);
         ffi::lua_call(state, 3, 1);
 
-        #[cfg(feature = "luau-jit")]
         if ffi::luau_codegen_supported() != 0 {
             ffi::luau_codegen_compile(state, -1);
         }
@@ -414,7 +413,6 @@ unsafe fn init_userdata_metatable_newindex(state: *mut ffi::lua_State) -> Result
         ffi::lua_pushcfunction(state, lua_isfunction_impl);
         ffi::lua_call(state, 2, 1);
 
-        #[cfg(feature = "luau-jit")]
         if ffi::luau_codegen_supported() != 0 {
             ffi::luau_codegen_compile(state, -1);
         }
@@ -425,18 +423,7 @@ unsafe fn init_userdata_metatable_newindex(state: *mut ffi::lua_State) -> Result
     })
 }
 
-// This method is called by Lua GC when it's time to collect the userdata.
-//
-// This method is usually used to collect internal userdata.
-#[cfg(not(feature = "luau"))]
-pub(crate) unsafe extern "C-unwind" fn collect_userdata<T>(state: *mut ffi::lua_State) -> c_int {
-    let ud = get_userdata::<T>(state, -1);
-    ptr::drop_in_place(ud);
-    0
-}
-
 // This method is called by Luau GC when it's time to collect the userdata.
-#[cfg(feature = "luau")]
 pub(crate) unsafe extern "C" fn collect_userdata<T>(
     state: *mut ffi::lua_State,
     ud: *mut std::os::raw::c_void,

@@ -16,7 +16,6 @@ use crate::types::{AppData, ReentrantMutex, XRc};
 use crate::userdata::RawUserDataRegistry;
 use crate::util::{get_internal_metatable, push_internal_userdata, TypeKey, WrappedFailure};
 
-#[cfg(any(feature = "luau", doc))]
 use crate::chunk::Compiler;
 
 #[cfg(feature = "async")]
@@ -73,26 +72,13 @@ pub(crate) struct ExtraData {
     #[cfg(feature = "async")]
     pub(super) waker: NonNull<Waker>,
 
-    #[cfg(not(feature = "luau"))]
-    pub(super) hook_callback: Option<crate::types::HookCallback>,
-    #[cfg(not(feature = "luau"))]
-    pub(super) hook_triggers: crate::debug::HookTriggers,
-    #[cfg(feature = "lua54")]
-    pub(super) warn_callback: Option<crate::types::WarnCallback>,
-    #[cfg(feature = "luau")]
     pub(super) interrupt_callback: Option<crate::types::InterruptCallback>,
-    #[cfg(feature = "luau")]
     pub(super) thread_creation_callback: Option<crate::types::ThreadCreationCallback>,
-    #[cfg(feature = "luau")]
     pub(super) thread_collection_callback: Option<crate::types::ThreadCollectionCallback>,
 
-    #[cfg(feature = "luau")]
     pub(crate) running_gc: bool,
-    #[cfg(feature = "luau")]
     pub(crate) sandboxed: bool,
-    #[cfg(feature = "luau")]
     pub(super) compiler: Option<Compiler>,
-    #[cfg(feature = "luau-jit")]
     pub(super) enable_jit: bool,
 }
 
@@ -120,7 +106,6 @@ impl TypeKey for XRc<UnsafeCell<ExtraData>> {
 
 impl ExtraData {
     // Index of `error_traceback` function in auxiliary thread stack
-    #[cfg(any(feature = "lua51", feature = "luajit", feature = "luau"))]
     pub(super) const ERROR_TRACEBACK_IDX: c_int = 1;
 
     pub(super) unsafe fn init(state: *mut ffi::lua_State, owned: bool) -> XRc<UnsafeCell<Self>> {
@@ -143,11 +128,8 @@ impl ExtraData {
         };
 
         // Store `error_traceback` function on the ref stack
-        #[cfg(any(feature = "lua51", feature = "luajit", feature = "luau"))]
-        {
-            ffi::lua_pushcfunction(ref_thread, crate::util::error_traceback);
-            assert_eq!(ffi::lua_gettop(ref_thread), Self::ERROR_TRACEBACK_IDX);
-        }
+        ffi::lua_pushcfunction(ref_thread, crate::util::error_traceback);
+        assert_eq!(ffi::lua_gettop(ref_thread), Self::ERROR_TRACEBACK_IDX);
 
         #[allow(clippy::arc_with_non_send_sync)]
         let extra = XRc::new(UnsafeCell::new(ExtraData {
@@ -176,25 +158,12 @@ impl ExtraData {
             wrapped_failure_mt_ptr,
             #[cfg(feature = "async")]
             waker: NonNull::from(noop_waker_ref()),
-            #[cfg(not(feature = "luau"))]
-            hook_callback: None,
-            #[cfg(not(feature = "luau"))]
-            hook_triggers: Default::default(),
-            #[cfg(feature = "lua54")]
-            warn_callback: None,
-            #[cfg(feature = "luau")]
             interrupt_callback: None,
-            #[cfg(feature = "luau")]
             thread_creation_callback: None,
-            #[cfg(feature = "luau")]
             thread_collection_callback: None,
-            #[cfg(feature = "luau")]
             sandboxed: false,
-            #[cfg(feature = "luau")]
             compiler: None,
-            #[cfg(feature = "luau-jit")]
             enable_jit: true,
-            #[cfg(feature = "luau")]
             running_gc: false,
         }));
 
@@ -213,11 +182,8 @@ impl ExtraData {
     }
 
     pub(crate) unsafe fn get(state: *mut ffi::lua_State) -> *mut Self {
-        #[cfg(feature = "luau")]
-        if cfg!(not(feature = "module")) {
-            // In the main app we can use `lua_callbacks` to access ExtraData
-            return (*ffi::lua_callbacks(state)).userdata as *mut _;
-        }
+        // In the main app we can use `lua_callbacks` to access ExtraData
+        return (*ffi::lua_callbacks(state)).userdata as *mut _;
 
         let extra_key = &EXTRA_REGISTRY_KEY as *const u8 as *const c_void;
         if ffi::lua_rawgetp(state, ffi::LUA_REGISTRYINDEX, extra_key) != ffi::LUA_TUSERDATA {
@@ -232,11 +198,8 @@ impl ExtraData {
     }
 
     unsafe fn store(extra: &XRc<UnsafeCell<Self>>, state: *mut ffi::lua_State) -> Result<()> {
-        #[cfg(feature = "luau")]
-        if cfg!(not(feature = "module")) {
-            (*ffi::lua_callbacks(state)).userdata = extra.get() as *mut _;
-            return Ok(());
-        }
+        (*ffi::lua_callbacks(state)).userdata = extra.get() as *mut _;
+        return Ok(());
 
         push_internal_userdata(state, XRc::clone(extra), true)?;
         protect_lua!(state, 1, 0, fn(state) {

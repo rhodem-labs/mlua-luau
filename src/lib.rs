@@ -78,7 +78,6 @@ mod conversion;
 mod debug;
 mod error;
 mod function;
-#[cfg(any(feature = "luau", doc))]
 mod luau;
 mod memory;
 mod multi;
@@ -123,11 +122,7 @@ pub use crate::userdata::{
 };
 pub use crate::value::{Nil, Value};
 
-#[cfg(not(feature = "luau"))]
-pub use crate::debug::HookTriggers;
-
-#[cfg(any(feature = "luau", doc))]
-#[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
+#[cfg_attr(docsrs, doc)]
 pub use crate::{
     buffer::Buffer,
     chunk::{CompileConstant, Compiler},

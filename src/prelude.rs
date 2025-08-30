@@ -17,11 +17,6 @@ pub use crate::{
     Variadic as LuaVariadic, VmState as LuaVmState, WeakLua,
 };
 
-#[cfg(not(feature = "luau"))]
-#[doc(no_inline)]
-pub use crate::HookTriggers as LuaHookTriggers;
-
-#[cfg(feature = "luau")]
 #[doc(no_inline)]
 pub use crate::{
     CompileConstant as LuaCompileConstant, CoverageInfo as LuaCoverageInfo,

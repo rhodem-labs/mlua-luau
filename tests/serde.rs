@@ -129,7 +129,7 @@ fn test_serialize_failure() -> Result<(), Box<dyn StdError>> {
     Ok(())
 }
 
-#[cfg(all(feature = "luau", not(feature = "luau-vector4")))]
+#[cfg(not(feature = "vector4"))]
 #[test]
 fn test_serialize_vector() -> Result<(), Box<dyn StdError>> {
     let lua = Lua::new();
@@ -146,7 +146,7 @@ fn test_serialize_vector() -> Result<(), Box<dyn StdError>> {
     Ok(())
 }
 
-#[cfg(feature = "luau-vector4")]
+#[cfg(feature = "vector4")]
 #[test]
 fn test_serialize_vector() -> Result<(), Box<dyn StdError>> {
     let lua = Lua::new();
@@ -772,7 +772,6 @@ fn test_arbitrary_precision() {
     );
 }
 
-#[cfg(feature = "luau")]
 #[test]
 fn test_buffer_serialize() -> LuaResult<()> {
     let lua = Lua::new();
@@ -789,7 +788,6 @@ fn test_buffer_serialize() -> LuaResult<()> {
     Ok(())
 }
 
-#[cfg(feature = "luau")]
 #[test]
 fn test_buffer_from_value() -> LuaResult<()> {
     let lua = Lua::new();

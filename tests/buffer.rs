@@ -1,5 +1,3 @@
-#![cfg(feature = "luau")]
-
 use std::io::{Read, Seek, SeekFrom, Write};
 
 use mlua::{Lua, Result, Value};

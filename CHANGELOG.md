@@ -258,7 +258,7 @@ Changes since v0.9.0-rc.3
 
 - `UserDataMethods::add_async_method()` takes `&T` instead of cloning `T`
 - Implemented `PartialEq<[T]>` for tables
-- Added Luau 4-dimensional vectors support (`luau-vector4` feature)
+- Added Luau 4-dimensional vectors support (`vector4` feature)
 - `Table::sequence_values()` iterator no longer uses any metamethods (`Table::raw_sequence_values()` is deprecated)
 - Added `Table:is_empty()` function that checks both hash and array parts
 - Refactored Debug interface

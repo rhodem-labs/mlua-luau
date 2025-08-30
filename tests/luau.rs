@@ -1,5 +1,3 @@
-#![cfg(feature = "luau")]
-
 use std::cell::Cell;
 use std::fmt::Debug;
 use std::os::raw::c_void;
@@ -17,7 +15,7 @@ fn test_version() -> Result<()> {
     Ok(())
 }
 
-#[cfg(not(feature = "luau-vector4"))]
+#[cfg(not(feature = "vector4"))]
 #[test]
 fn test_vectors() -> Result<()> {
     let lua = Lua::new();
@@ -57,7 +55,7 @@ fn test_vectors() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "luau-vector4")]
+#[cfg(feature = "vector4")]
 #[test]
 fn test_vectors() -> Result<()> {
     let lua = Lua::new();
@@ -99,7 +97,7 @@ fn test_vectors() -> Result<()> {
     Ok(())
 }
 
-#[cfg(not(feature = "luau-vector4"))]
+#[cfg(not(feature = "vector4"))]
 #[test]
 fn test_vector_metatable() -> Result<()> {
     let lua = Lua::new();
