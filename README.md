@@ -51,8 +51,6 @@ Below is a list of the available feature flags. By default `ulua` does not enabl
 
 With the `serde` feature flag enabled, `ulua` allows you to serialize/deserialize any type that implements [`serde::Serialize`] and [`serde::Deserialize`] into/from [`ulua::Value`]. In addition, `ulua` provides the [`serde::Serialize`] trait implementation for `ulua::Value` (including `UserData` support).
 
-[Example](examples/serde.rs)
-
 [`serde::Serialize`]: https://docs.serde.rs/serde/ser/trait.Serialize.html
 [`serde::Deserialize`]: https://docs.serde.rs/serde/de/trait.Deserialize.html
 [`ulua::Value`]: https://docs.rs/ulua/latest/ulua/enum.Value.html
