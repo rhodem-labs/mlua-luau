@@ -1,4 +1,4 @@
-# mlua-luau
+# ulua
 [![Build Status]][github-actions] [![Latest Version]][crates.io] [![API Documentation]][docs.rs] [![Coverage Status]][codecov.io] ![MSRV]
 
 [Build Status]: https://github.com/rhodem-labs/ulua/workflows/CI/badge.svg
