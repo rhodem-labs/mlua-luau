@@ -1,6 +1,6 @@
 [luau]
-features = "luau,async,send,serde,macros"
+features = "async,send,serde,macros"
 
 [luau_with_memory_limit]
-features = "luau,async,send,serde,macros"
+features = "async,send,serde,macros"
 rustflags = "--cfg force_memory_limit"
