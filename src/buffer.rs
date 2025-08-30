@@ -80,7 +80,7 @@ impl Buffer {
     unsafe fn as_raw_parts(&self, lua: &RawLua) -> (*mut u8, usize) {
         let mut size = 0usize;
         let buf = ffi::lua_tobuffer(lua.ref_thread(), self.0.index, &mut size);
-        mlua_assert!(!buf.is_null(), "invalid Luau buffer");
+        ulua_assert!(!buf.is_null(), "invalid Luau buffer");
         (buf as *mut u8, size)
     }
 }

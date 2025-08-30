@@ -176,7 +176,7 @@ impl Lua {
     ///
     /// See [`StdLib`] documentation for a list of unsafe modules that cannot be loaded.
     pub fn new() -> Lua {
-        mlua_expect!(
+        ulua_expect!(
             Self::new_with(StdLib::ALL_SAFE, LuaOptions::default()),
             "Cannot create a Lua state"
         )
@@ -229,7 +229,7 @@ impl Lua {
             collect_garbage: true,
         };
 
-        mlua_expect!(lua.configure_luau(), "Error configuring Luau");
+        ulua_expect!(lua.configure_luau(), "Error configuring Luau");
 
         lua
     }
@@ -263,7 +263,7 @@ impl Lua {
     ///
     /// # Example
     /// ```
-    /// # use mlua_luau::{Lua, Result};
+    /// # use ulua::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     /// let n: i32 = unsafe {
@@ -387,7 +387,7 @@ impl Lua {
     /// # Examples
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result};
+    /// # use ulua::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     ///
@@ -442,7 +442,7 @@ impl Lua {
     ///
     /// ```
     /// # use std::sync::{Arc, atomic::{AtomicU64, Ordering}};
-    /// # use mlua_luau::{Lua, Result, ThreadStatus, VmState};
+    /// # use ulua::{Lua, Result, ThreadStatus, VmState};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     /// let count = Arc::new(AtomicU64::new(0));
@@ -477,7 +477,7 @@ impl Lua {
             }
             let result = callback_error_ext(state, ptr::null_mut(), false, move |extra, _| {
                 let interrupt_cb = (*extra).interrupt_callback.clone();
-                let interrupt_cb = mlua_expect!(interrupt_cb, "no interrupt callback set in interrupt_proc");
+                let interrupt_cb = ulua_expect!(interrupt_cb, "no interrupt callback set in interrupt_proc");
                 if XRc::strong_count(&interrupt_cb) > 2 {
                     return Ok(VmState::Continue); // Don't allow recursion
                 }
@@ -897,7 +897,7 @@ impl Lua {
     /// Create a function which prints its argument:
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result};
+    /// # use ulua::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let greet = lua.create_function(|_, name: String| {
@@ -912,7 +912,7 @@ impl Lua {
     /// Use tuples to accept multiple arguments:
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result};
+    /// # use ulua::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let print_person = lua.create_function(|_, (name, age): (String, u8)| {
@@ -991,7 +991,7 @@ impl Lua {
     ///
     /// ```
     /// use std::time::Duration;
-    /// use mlua_luau::{Lua, Result};
+    /// use ulua::{Lua, Result};
     ///
     /// async fn sleep(_lua: Lua, n: u64) -> Result<&'static str> {
     ///     tokio::time::sleep(Duration::from_millis(n)).await;
@@ -1122,7 +1122,7 @@ impl Lua {
     /// # Examples
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result, UserData, UserDataFields, UserDataMethods};
+    /// # use ulua::{Lua, Result, UserData, UserDataFields, UserDataMethods};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// struct MyUserData(i32);
@@ -1161,7 +1161,7 @@ impl Lua {
     /// Change metatable for Lua boolean type:
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result, Function};
+    /// # use ulua::{Lua, Result, Function};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let mt = lua.create_table()?;
@@ -1598,7 +1598,7 @@ impl Lua {
         unsafe {
             let mut unref_list = (*lua.extra.get()).registry_unref_list.lock();
             let unref_list = unref_list.replace(Vec::new());
-            for id in mlua_expect!(unref_list, "unref list is not set") {
+            for id in ulua_expect!(unref_list, "unref list is not set") {
                 ffi::luaL_unref(state, ffi::LUA_REGISTRYINDEX, id);
             }
         }
@@ -1616,7 +1616,7 @@ impl Lua {
     /// # Examples
     ///
     /// ```
-    /// use mlua_luau::{Lua, Result};
+    /// use ulua::{Lua, Result};
     ///
     /// fn hello(lua: &Lua, _: ()) -> Result<()> {
     ///     let mut s = lua.app_data_mut::<&str>().unwrap();
@@ -1748,7 +1748,7 @@ impl Lua {
     /// Async iterator:
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result};
+    /// # use ulua::{Lua, Result};
     ///
     /// async fn generator(lua: Lua, _: ()) -> Result<()> {
     ///     for i in 0..10 {
@@ -1775,7 +1775,7 @@ impl Lua {
     /// Exchange values on yield:
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result, Value};
+    /// # use ulua::{Lua, Result, Value};
     ///
     /// async fn pingpong(lua: Lua, mut val: i32) -> Result<()> {
     ///     loop {

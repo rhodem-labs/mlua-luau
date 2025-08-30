@@ -481,7 +481,7 @@ impl ser::SerializeMap for SerializeMap<'_> {
     where
         T: Serialize + ?Sized,
     {
-        let key = mlua_expect!(self.key.take(), "serialize_value called before serialize_key");
+        let key = ulua_expect!(self.key.take(), "serialize_value called before serialize_key");
         let value = self.lua.to_value_with(value, self.options)?;
         self.table.raw_set(key, value)
     }

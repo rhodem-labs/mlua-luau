@@ -151,7 +151,7 @@ impl MetaMethod {
         match name {
             "__gc" => Err(Error::MetaMethodRestricted(name.to_string())),
             "__metatable" => Err(Error::MetaMethodRestricted(name.to_string())),
-            _ if name.starts_with("__mlua") => Err(Error::MetaMethodRestricted(name.to_string())),
+            _ if name.starts_with("__ulua") => Err(Error::MetaMethodRestricted(name.to_string())),
             name => Ok(name),
         }
     }
@@ -374,7 +374,7 @@ pub trait UserDataFields<T> {
     ///
     /// # Note
     ///
-    /// `mlua` will trigger an error on an attempt to define a protected metamethod,
+    /// `ulua` will trigger an error on an attempt to define a protected metamethod,
     /// like `__gc` or `__metatable`.
     fn add_meta_field<V>(&mut self, name: impl Into<StdString>, value: V)
     where
@@ -386,7 +386,7 @@ pub trait UserDataFields<T> {
     ///
     /// # Note
     ///
-    /// `mlua` will trigger an error on an attempt to define a protected metamethod,
+    /// `ulua` will trigger an error on an attempt to define a protected metamethod,
     /// like `__gc` or `__metatable`.
     fn add_meta_field_with<F, R>(&mut self, name: impl Into<StdString>, f: F)
     where
@@ -405,7 +405,7 @@ pub trait UserDataFields<T> {
 /// # Examples
 ///
 /// ```
-/// # use mlua_luau::{Lua, Result, UserData};
+/// # use ulua::{Lua, Result, UserData};
 /// # fn main() -> Result<()> {
 /// # let lua = Lua::new();
 /// struct MyUserData;
@@ -424,7 +424,7 @@ pub trait UserDataFields<T> {
 /// `add_methods` (refer to [`UserDataFields`] and [`UserDataMethods`] for more information):
 ///
 /// ```
-/// # use mlua_luau::{Lua, MetaMethod, Result, UserData, UserDataFields, UserDataMethods};
+/// # use ulua::{Lua, MetaMethod, Result, UserData, UserDataFields, UserDataMethods};
 /// # fn main() -> Result<()> {
 /// # let lua = Lua::new();
 /// struct MyUserData(i32);
@@ -868,7 +868,7 @@ impl UserDataMetatable {
     /// If the value is `Nil`, this will effectively remove the `key`.
     /// Access to restricted metamethods such as `__gc` or `__metatable` will cause an error.
     /// Setting `__index` or `__newindex` metamethods is also restricted because their values are
-    /// cached for `mlua` internal usage.
+    /// cached for `ulua` internal usage.
     pub fn set(&self, key: impl AsRef<str>, value: impl IntoLua) -> Result<()> {
         let key = MetaMethod::validate(key.as_ref())?;
         // `__index` and `__newindex` cannot be changed in runtime, because values are cached

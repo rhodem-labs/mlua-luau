@@ -1,6 +1,6 @@
 use std::panic::catch_unwind;
 
-use mlua_luau::{Error, Function, IntoLua, Lua, Result, Thread, ThreadStatus, Value};
+use ulua::{Error, Function, IntoLua, Lua, Result, Thread, ThreadStatus, Value};
 
 #[test]
 fn test_thread() -> Result<()> {
@@ -108,7 +108,7 @@ fn test_thread() -> Result<()> {
 
 #[test]
 fn test_thread_reset() -> Result<()> {
-    use mlua_luau::{AnyUserData, UserData};
+    use ulua::{AnyUserData, UserData};
     use std::sync::Arc;
 
     let lua = Lua::new();

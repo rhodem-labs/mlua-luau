@@ -110,7 +110,7 @@ impl Thread {
     /// # Examples
     ///
     /// ```
-    /// # use mlua_luau::{Error, Lua, Result, Thread};
+    /// # use ulua::{Error, Lua, Result, Thread};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let thread: Thread = lua.load(r#"
@@ -319,7 +319,7 @@ impl Thread {
     /// # Examples
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result, Thread};
+    /// # use ulua::{Lua, Result, Thread};
     /// use futures_util::stream::TryStreamExt;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
@@ -413,7 +413,7 @@ impl Thread {
     /// # Examples
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result};
+    /// # use ulua::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     /// let thread = lua.create_thread(lua.create_function(|lua2, ()| {

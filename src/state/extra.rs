@@ -110,7 +110,7 @@ impl ExtraData {
     pub(super) unsafe fn init(state: *mut ffi::lua_State, owned: bool) -> XRc<UnsafeCell<Self>> {
         // Create ref stack thread and place it in the registry to prevent it
         // from being garbage collected.
-        let ref_thread = mlua_expect!(
+        let ref_thread = ulua_expect!(
             protect_lua!(state, 0, 0, |state| {
                 let thread = ffi::lua_newthread(state);
                 ffi::luaL_ref(state, ffi::LUA_REGISTRYINDEX);
@@ -167,7 +167,7 @@ impl ExtraData {
         }));
 
         // Store it in the registry
-        mlua_expect!(Self::store(&extra, state), "Error while storing extra data");
+        ulua_expect!(Self::store(&extra, state), "Error while storing extra data");
 
         extra
     }

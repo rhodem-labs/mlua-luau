@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::error::Error as StdError;
 
 use bstr::BString;
-use mlua_luau::{
+use ulua::{
     AnyUserData, DeserializeOptions, Error, ExternalResult, IntoLua, Lua, LuaSerdeExt, Result as LuaResult,
     SerializeOptions, UserData, Value,
 };

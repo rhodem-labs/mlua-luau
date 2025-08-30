@@ -62,7 +62,7 @@ pub enum Value {
     Buffer(crate::Buffer),
     /// `Error` is a special builtin userdata type. When received from Lua it is implicitly cloned.
     Error(Box<Error>),
-    /// Any other value not known to mlua (eg. LuaJIT CData).
+    /// Any other value not known to ulua (eg. LuaJIT CData).
     Other(#[doc(hidden)] ValueRef),
 }
 
@@ -100,10 +100,10 @@ impl Value {
     /// Tables, functions, threads, and userdata are compared by reference:
     /// two objects are considered equal only if they are the same object.
     ///
-    /// If table or userdata have `__eq` metamethod then mlua will try to invoke it.
+    /// If table or userdata have `__eq` metamethod then ulua will try to invoke it.
     /// The first value is checked first. If that value does not define a metamethod
-    /// for `__eq`, then mlua will check the second value.
-    /// Then mlua calls the metamethod with the two values as arguments, if found.
+    /// for `__eq`, then ulua will check the second value.
+    /// Then ulua calls the metamethod with the two values as arguments, if found.
     pub fn equals(&self, other: &Self) -> Result<bool> {
         match (self, other) {
             (Value::Table(a), Value::Table(b)) => a.equals(b),

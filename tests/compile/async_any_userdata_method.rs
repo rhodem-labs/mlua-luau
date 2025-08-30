@@ -1,4 +1,4 @@
-use mlua::{Lua, UserDataMethods};
+use ulua::{Lua, UserDataMethods};
 
 fn main() {
     let lua = Lua::new();

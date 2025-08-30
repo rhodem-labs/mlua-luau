@@ -28,11 +28,11 @@ WebAssembly (WASM) is supported through `wasm32-unknown-emscripten` target for a
 `ulua` uses feature flags to reduce the amount of dependencies and compiled code, and allow to choose only required set of features.
 Below is a list of the available feature flags. By default `ulua` does not enable any features.
 
-* `vector4`: enable [Luau] support with 4-dimensional vector.
+* `vector4`: enable [Luau]'s 4-dimensional vector.
 * `async`: enable async/await support (any executor can be used, eg. [tokio] or [async-std])
-* `send`: make `mlua::Lua: Send + Sync` (adds [`Send`] requirement to `mlua::Function` and `mlua::UserData`)
-* `error-send`: make `mlua:Error: Send + Sync`
-* `serde`: add serialization and deserialization support to `mlua` types using [serde]
+* `send`: make `ulua::Lua: Send + Sync` (adds [`Send`] requirement to `ulua::Function` and `ulua::UserData`)
+* `error-send`: make `ulua:Error: Send + Sync`
+* `serde`: add serialization and deserialization support to `ulua` types using [serde]
 * `macros`: enable procedural macros (such as `chunk!`)
 * `anyhow`: enable `anyhow::Error` conversion into Lua
 * `userdata-wrappers`: opt into `impl UserData` for `Rc<T>`/`Arc<T>`/`Rc<RefCell<T>>`/`Arc<Mutex<T>>` where `T: UserData`
@@ -108,7 +108,7 @@ If you encounter them, a bug report would be very welcome:
 
   + Lua C API errors are handled by longjmp. All instances where the Lua C API would otherwise longjmp over calling stack frames should be guarded against, except in internal callbacks where this is intentional. If you detect that `ulua` is triggering a longjmp over your Rust stack frames, this is a bug!
 
-  + If you detect that, after catching a panic or during a Drop triggered from a panic, a `Lua` or handle method is triggering other bugs or there is a Lua stack space leak, this is a bug. `ulua` instances are supposed to remain fully usable in the face of user generated panics. This guarantee does not extend to panics marked with "mlua internal error" simply because that is already indicative of a separate bug.
+  + If you detect that, after catching a panic or during a Drop triggered from a panic, a `Lua` or handle method is triggering other bugs or there is a Lua stack space leak, this is a bug. `ulua` instances are supposed to remain fully usable in the face of user generated panics. This guarantee does not extend to panics marked with "ulua internal error" simply because that is already indicative of a separate bug.
 
 ## Sandboxing
 

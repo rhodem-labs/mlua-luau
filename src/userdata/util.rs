@@ -263,7 +263,7 @@ pub(crate) unsafe fn init_userdata_metatable(
                 // Generate `__index`
                 protect_lua!(state, 4, 1, fn(state) ffi::lua_call(state, 3, 1))?;
             }
-            _ => mlua_panic!("improper `__index` type: {}", index_type),
+            _ => ulua_panic!("improper `__index` type: {}", index_type),
         }
 
         rawset_field(state, metatable, "__index")?;
@@ -280,7 +280,7 @@ pub(crate) unsafe fn init_userdata_metatable(
                 // Generate `__newindex`
                 protect_lua!(state, 3, 1, fn(state) ffi::lua_call(state, 2, 1))?;
             }
-            _ => mlua_panic!("improper `__newindex` type: {}", newindex_type),
+            _ => ulua_panic!("improper `__newindex` type: {}", newindex_type),
         }
 
         rawset_field(state, metatable, "__newindex")?;
@@ -354,7 +354,7 @@ unsafe fn init_userdata_metatable_index(state: *mut ffi::lua_State) -> Result<()
         end
     "#;
     protect_lua!(state, 0, 1, |state| {
-        let ret = ffi::luaL_loadbuffer(state, code.as_ptr(), code.count_bytes(), cstr!("=__mlua_index"));
+        let ret = ffi::luaL_loadbuffer(state, code.as_ptr(), code.count_bytes(), cstr!("=__ulua_index"));
         if ret != ffi::LUA_OK {
             ffi::lua_error(state);
         }
@@ -405,7 +405,7 @@ unsafe fn init_userdata_metatable_newindex(state: *mut ffi::lua_State) -> Result
     "#;
     protect_lua!(state, 0, 1, |state| {
         let code_len = code.count_bytes();
-        let ret = ffi::luaL_loadbuffer(state, code.as_ptr(), code_len, cstr!("=__mlua_newindex"));
+        let ret = ffi::luaL_loadbuffer(state, code.as_ptr(), code_len, cstr!("=__ulua_newindex"));
         if ret != ffi::LUA_OK {
             ffi::lua_error(state);
         }

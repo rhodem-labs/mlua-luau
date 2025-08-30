@@ -71,7 +71,7 @@ impl Function {
     /// Call Lua's built-in `tostring` function:
     ///
     /// ```
-    /// # use mlua_luau::{Function, Lua, Result};
+    /// # use ulua::{Function, Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let globals = lua.globals();
@@ -87,7 +87,7 @@ impl Function {
     /// Call a function with multiple arguments:
     ///
     /// ```
-    /// # use mlua_luau::{Function, Lua, Result};
+    /// # use ulua::{Function, Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let sum: Function = lua.load(
@@ -136,7 +136,7 @@ impl Function {
     ///
     /// ```
     /// use std::time::Duration;
-    /// # use mlua_luau::{Lua, Result};
+    /// # use ulua::{Lua, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
     /// # let lua = Lua::new();
@@ -177,7 +177,7 @@ impl Function {
     /// # Examples
     ///
     /// ```
-    /// # use mlua_luau::{Function, Lua, Result};
+    /// # use ulua::{Function, Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let sum: Function = lua.load(
@@ -251,7 +251,7 @@ impl Function {
             "#,
         )
         .try_cache()
-        .set_name("=__mlua_bind")
+        .set_name("=__ulua_bind")
         .call((self, args_wrapper))
     }
 
@@ -321,7 +321,7 @@ impl Function {
             let mut ar: ffi::lua_Debug = mem::zeroed();
             lua.push_ref(&self.0, state);
             let res = ffi::lua_getinfo(state, -1, cstr!("sn"), &mut ar);
-            mlua_assert!(res != 0, "lua_getinfo failed with `>Sn`");
+            ulua_assert!(res != 0, "lua_getinfo failed with `>Sn`");
 
             FunctionInfo {
                 name: ptr_to_lossy_str(ar.name).map(|s| s.into_owned()),

@@ -1,4 +1,4 @@
-use mlua::{UserData, UserDataMethods};
+use ulua::{UserData, UserDataMethods};
 
 fn main() {
     #[derive(Clone)]

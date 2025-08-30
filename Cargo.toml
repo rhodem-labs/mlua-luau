@@ -1,18 +1,16 @@
 [package]
-name = "mlua-luau"
-version = "0.11.3" # remember to update mlua-macros
-authors = ["Luc Rodiguez <labs@rhodem.com>", "Aleksandr Orlenko <zxteam@pm.me>", "kyren <catherine@kyju.org>"]
+name = "ulua"
+version = "0.11.3" # remember to update ulua-macros
+authors = ["Luc Rodiguez <labs@rhodem.com>"]
 rust-version = "1.79.0"
 edition = "2021"
-repository = "https://github.com/rhodem-labs/mlua-luau"
-documentation = "https://docs.rs/mlua-luau"
+repository = "https://github.com/rhodem-labs/ulua"
+documentation = "https://docs.rs/ulua"
 readme = "README.md"
 keywords = ["lua", "luau", "async", "scripting"]
 categories = ["api-bindings", "asynchronous"]
 license = "MIT"
-description = """
-High level bindings to Luau
-"""
+description = "High level Luau bindings to Rust with async/await support"
 
 [package.metadata.docs.rs]
 features = ["async", "send", "serde", "macros"]
@@ -20,8 +18,8 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [workspace]
 members = [
-    "mlua-macros",
-    "mlua-sys",
+    "ulua-macros",
+    "ulua-sys",
 ]
 
 [features]
@@ -31,12 +29,12 @@ async = ["dep:futures-util"]
 send = ["error-send"]
 error-send = []
 serde = ["dep:serde", "dep:erased-serde", "dep:serde-value", "bstr/serde"]
-macros = ["mlua-macros/macros"]
+macros = ["ulua-macros/macros"]
 anyhow = ["dep:anyhow", "error-send"]
 userdata-wrappers = ["parking_lot/send_guard"]
 
 [dependencies]
-mlua-macros = { version = "=0.11.0", optional = true, path = "mlua-macros" }
+ulua-macros = { version = "=0.11.0", optional = true, path = "ulua-macros" }
 bstr = { version = "1.0", features = ["std"], default-features = false }
 either = "1.0"
 num-traits = { version = "0.2.14" }
@@ -49,7 +47,7 @@ parking_lot = { version = "0.12", features = ["arc_lock"] }
 anyhow = { version = "1.0", optional = true }
 rustversion = "1.0"
 
-ffi = { package = "mlua-sys", version = "0.8.3", path = "mlua-sys" }
+ffi = { package = "ulua-sys", version = "0.8.3", path = "ulua-sys" }
 
 [dev-dependencies]
 trybuild = "1.0"

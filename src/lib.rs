@@ -1,6 +1,6 @@
-//! # High-level bindings to Lua
+//! # High-level bindings to Luau
 //!
-//! The `mlua` crate provides safe high-level bindings to the [Lua programming language].
+//! The `ulua` crate provides safe high-level bindings to the [Lua programming language].
 //!
 //! # The `Lua` object
 //!
@@ -16,7 +16,7 @@
 //! For more general conversions, the [`IntoLuaMulti`] and [`FromLuaMulti`] traits allow converting
 //! between Rust types and *any number* of Lua values.
 //!
-//! Most code in `mlua` is generic over implementors of those traits, so in most places the normal
+//! Most code in `ulua` is generic over implementors of those traits, so in most places the normal
 //! Rust data structures are accepted without having to write any boilerplate.
 //!
 //! # Custom Userdata
@@ -47,7 +47,7 @@
 //!
 //! # `Send` and `Sync` support
 //!
-//! By default `mlua` is `!Send`. This can be changed by enabling `feature = "send"` that adds
+//! By default `ulua` is `!Send`. This can be changed by enabling `feature = "send"` that adds
 //! `Send` requirement to Rust functions and [`UserData`] types.
 //!
 //! In this case [`Lua`] object and their types can be send or used from other threads. Internally
@@ -145,7 +145,7 @@ pub mod serde;
 #[cfg(feature = "macros")]
 #[allow(unused_imports)]
 #[macro_use]
-extern crate mlua_macros;
+extern crate ulua_macros;
 
 /// Create a type that implements [`AsChunk`] and can capture Rust variables.
 ///
@@ -157,7 +157,7 @@ extern crate mlua_macros;
 /// Captured variables are **moved** into the chunk.
 ///
 /// ```
-/// use mlua_luau::{Lua, Result, chunk};
+/// use ulua::{Lua, Result, chunk};
 ///
 /// fn main() -> Result<()> {
 ///     let lua = Lua::new();
@@ -197,7 +197,7 @@ extern crate mlua_macros;
 /// Everything else should work.
 #[cfg(feature = "macros")]
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
-pub use mlua_macros::chunk;
+pub use ulua_macros::chunk;
 
 /// Derive [`FromLua`] for a Rust type.
 ///
@@ -205,7 +205,7 @@ pub use mlua_macros::chunk;
 /// and clone.
 #[cfg(feature = "macros")]
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
-pub use mlua_macros::FromLua;
+pub use ulua_macros::FromLua;
 
 pub(crate) mod private {
     use super::*;

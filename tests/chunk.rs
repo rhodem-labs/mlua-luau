@@ -1,6 +1,6 @@
 use std::{fs, io};
 
-use mlua_luau::{Chunk, ChunkMode, Lua, Result};
+use ulua::{Chunk, ChunkMode, Lua, Result};
 
 #[test]
 fn test_chunk_methods() -> Result<()> {
@@ -83,15 +83,15 @@ fn test_chunk_macro() -> Result<()> {
     let data = lua.create_table()?;
     data.raw_set("num", 1)?;
 
-    let ud = mlua_luau::AnyUserData::wrap("hello");
-    let f = mlua_luau::Function::wrap(|| Ok(()));
+    let ud = ulua::AnyUserData::wrap("hello");
+    let f = ulua::Function::wrap(|| Ok(()));
 
     lua.globals().set("g", 123)?;
 
     let string = String::new();
     let str = string.as_str();
 
-    lua.load(mlua_macros::chunk! {
+    lua.load(ulua_macros::chunk! {
         assert($name == "Rustacean")
         assert(type($table) == "table")
         assert($table[1] == 1)
@@ -113,7 +113,7 @@ fn test_chunk_macro() -> Result<()> {
 
 #[test]
 fn test_compiler() -> Result<()> {
-    let compiler = mlua_luau::Compiler::new()
+    let compiler = ulua::Compiler::new()
         .set_optimization_level(2)
         .set_debug_level(2)
         .set_type_info_level(1)
@@ -128,7 +128,7 @@ fn test_compiler() -> Result<()> {
 
     // Error
     match compiler.compile("%") {
-        Err(mlua_luau::Error::SyntaxError { ref message, .. }) => {
+        Err(ulua::Error::SyntaxError { ref message, .. }) => {
             assert!(message.contains("Expected identifier when parsing expression, got '%'"),);
         }
         res => panic!("expected result: {res:?}"),
@@ -139,7 +139,7 @@ fn test_compiler() -> Result<()> {
 
 #[test]
 fn test_compiler_library_constants() {
-    use mlua_luau::{Compiler, Vector};
+    use ulua::{Compiler, Vector};
 
     let compiler = Compiler::new()
         .set_optimization_level(2)

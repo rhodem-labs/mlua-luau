@@ -1,4 +1,4 @@
-use mlua_luau::{Lua, Result};
+use ulua::{Lua, Result};
 
 #[test]
 fn test_debug_format() -> Result<()> {

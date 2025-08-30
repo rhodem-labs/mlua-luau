@@ -5,7 +5,7 @@ use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
 use tokio::runtime::Runtime;
 use tokio::task;
 
-use mlua_luau::prelude::*;
+use ulua::prelude::*;
 
 fn collect_gc_twice(lua: &Lua) {
     lua.gc_collect().unwrap();

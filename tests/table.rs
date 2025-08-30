@@ -1,4 +1,4 @@
-use mlua_luau::{Error, Lua, ObjectLike, Result, Table, Value};
+use ulua::{Error, Lua, ObjectLike, Result, Table, Value};
 
 #[test]
 fn test_globals_set_get() -> Result<()> {

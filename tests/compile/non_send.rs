@@ -1,7 +1,7 @@
 use std::cell::Cell;
 use std::rc::Rc;
 
-use mlua::{Lua, Result};
+use ulua::{Lua, Result};
 
 fn main() -> Result<()> {
     let lua = Lua::new();

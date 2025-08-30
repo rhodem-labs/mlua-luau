@@ -1,7 +1,7 @@
 use std::error::Error as _;
 use std::{fmt, io};
 
-use mlua_luau::{Error, ErrorContext, Lua, Result};
+use ulua::{Error, ErrorContext, Lua, Result};
 
 #[test]
 fn test_error_context() -> Result<()> {
@@ -80,7 +80,7 @@ fn test_error_chain() -> Result<()> {
 #[cfg(feature = "anyhow")]
 #[test]
 fn test_error_anyhow() -> Result<()> {
-    use mlua::IntoLua;
+    use ulua::IntoLua;
 
     let lua = Lua::new();
 

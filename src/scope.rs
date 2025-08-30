@@ -235,7 +235,7 @@ impl<'scope, 'env: 'scope> Scope<'scope, 'env> {
     /// # Example
     ///
     /// ```rust
-    /// # use mlua_luau::{Error, Lua, Result};
+    /// # use ulua::{Error, Lua, Result};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     /// let ud = lua.create_any_userdata(String::from("hello"))?;

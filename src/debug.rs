@@ -38,7 +38,7 @@ impl<'a> Debug<'a> {
             let _sg = StackGuard::new(self.state);
             assert_stack(self.state, 1);
 
-            mlua_assert!(
+            ulua_assert!(
                 ffi::lua_getinfo(self.state, self.level, cstr!("f"), self.ar) != 0,
                 "lua_getinfo failed with `f`"
             );
@@ -51,7 +51,7 @@ impl<'a> Debug<'a> {
     /// Corresponds to the `n` "what" mask.
     pub fn names(&self) -> DebugNames<'_> {
         unsafe {
-            mlua_assert!(
+            ulua_assert!(
                 ffi::lua_getinfo(self.state, self.level, cstr!("n"), self.ar) != 0,
                 "lua_getinfo failed with `n`"
             );
@@ -66,7 +66,7 @@ impl<'a> Debug<'a> {
     /// Corresponds to the `S` "what" mask.
     pub fn source(&self) -> DebugSource<'_> {
         unsafe {
-            mlua_assert!(
+            ulua_assert!(
                 ffi::lua_getinfo(self.state, self.level, cstr!("s"), self.ar) != 0,
                 "lua_getinfo failed with `s`"
             );
@@ -90,7 +90,7 @@ impl<'a> Debug<'a> {
     /// Corresponds to the `l` "what" mask. Returns the current line.
     pub fn current_line(&self) -> Option<usize> {
         unsafe {
-            mlua_assert!(
+            ulua_assert!(
                 ffi::lua_getinfo(self.state, self.level, cstr!("l"), self.ar) != 0,
                 "lua_getinfo failed with `l`"
             );
@@ -102,7 +102,7 @@ impl<'a> Debug<'a> {
     /// Corresponds to the `u` "what" mask.
     pub fn stack(&self) -> DebugStack {
         unsafe {
-            mlua_assert!(
+            ulua_assert!(
                 ffi::lua_getinfo(self.state, self.level, cstr!("au"), self.ar) != 0,
                 "lua_getinfo failed with `au`"
             );

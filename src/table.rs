@@ -39,7 +39,7 @@ impl Table {
     /// Export a value as a global to make it usable from Lua:
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result};
+    /// # use ulua::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let globals = lua.globals();
@@ -95,7 +95,7 @@ impl Table {
     /// Query the version of the Lua interpreter:
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result};
+    /// # use ulua::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let globals = lua.globals();
@@ -192,15 +192,15 @@ impl Table {
     /// Compares two tables for equality.
     ///
     /// Tables are compared by reference first.
-    /// If they are not primitively equals, then mlua will try to invoke the `__eq` metamethod.
-    /// mlua will check `self` first for the metamethod, then `other` if not found.
+    /// If they are not primitively equals, then ulua will try to invoke the `__eq` metamethod.
+    /// ulua will check `self` first for the metamethod, then `other` if not found.
     ///
     /// # Examples
     ///
     /// Compare two tables using `__eq` metamethod:
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result, Table};
+    /// # use ulua::{Lua, Result, Table};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let table1 = lua.create_table()?;
@@ -553,7 +553,7 @@ impl Table {
     /// Iterate over all globals:
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result, Value};
+    /// # use ulua::{Lua, Result, Value};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let globals = lua.globals();
@@ -614,7 +614,7 @@ impl Table {
     /// # Examples
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result, Table};
+    /// # use ulua::{Lua, Result, Table};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let my_table: Table = lua.load(r#"

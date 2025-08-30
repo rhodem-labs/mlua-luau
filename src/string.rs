@@ -29,7 +29,7 @@ impl String {
     /// # Examples
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result, String};
+    /// # use ulua::{Lua, Result, String};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let globals = lua.globals();
@@ -60,7 +60,7 @@ impl String {
     /// # Examples
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result};
+    /// # use ulua::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     ///
@@ -92,7 +92,7 @@ impl String {
     /// # Examples
     ///
     /// ```
-    /// # use mlua_luau::{Lua, Result, String};
+    /// # use ulua::{Lua, Result, String};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let non_utf8: String = lua.load(r#"  "test\255"  "#).eval()?;
@@ -121,7 +121,7 @@ impl String {
             let rawlua = lua.lock();
             let ref_thread = rawlua.ref_thread();
 
-            mlua_debug_assert!(
+            ulua_debug_assert!(
                 ffi::lua_type(ref_thread, self.0.index) == ffi::LUA_TSTRING,
                 "string ref is not string type"
             );

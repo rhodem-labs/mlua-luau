@@ -1,4 +1,4 @@
-use mlua_luau::{Error, Function, Lua, Result, String, Table, Variadic};
+use ulua::{Error, Function, Lua, Result, String, Table, Variadic};
 
 #[test]
 fn test_function_call() -> Result<()> {
@@ -193,7 +193,7 @@ fn test_function_info() -> Result<()> {
 fn test_function_coverage() -> Result<()> {
     let lua = Lua::new();
 
-    lua.set_compiler(mlua_luau::Compiler::default().set_coverage_level(1));
+    lua.set_compiler(ulua::Compiler::default().set_coverage_level(1));
 
     let f = lua
         .load(
@@ -224,7 +224,7 @@ fn test_function_coverage() -> Result<()> {
 
     assert_eq!(
         report[0],
-        mlua_luau::CoverageInfo {
+        ulua::CoverageInfo {
             function: None,
             line_defined: 1,
             depth: 0,
@@ -233,7 +233,7 @@ fn test_function_coverage() -> Result<()> {
     );
     assert_eq!(
         report[1],
-        mlua_luau::CoverageInfo {
+        ulua::CoverageInfo {
             function: Some("abc".into()),
             line_defined: 4,
             depth: 1,
@@ -242,7 +242,7 @@ fn test_function_coverage() -> Result<()> {
     );
     assert_eq!(
         report[2],
-        mlua_luau::CoverageInfo {
+        ulua::CoverageInfo {
             function: None,
             line_defined: 12,
             depth: 1,
@@ -251,7 +251,7 @@ fn test_function_coverage() -> Result<()> {
     );
     assert_eq!(
         report[3],
-        mlua_luau::CoverageInfo {
+        ulua::CoverageInfo {
             function: None,
             line_defined: 13,
             depth: 2,

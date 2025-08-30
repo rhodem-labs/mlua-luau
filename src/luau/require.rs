@@ -541,7 +541,7 @@ pub(super) fn create_require_function<R: Require + MaybeSend + 'static>(
             ffi::lua_pushcfunctiond(state, find_current_file, cstr!("find_current_file"));
             ffi::luarequire_pushproxyrequire(state, init_config, context_ptr as *mut _);
             ffi::luaL_getsubtable(state, ffi::LUA_REGISTRYINDEX, ffi::LUA_REGISTERED_MODULES_TABLE);
-            ffi::luaL_getsubtable(state, ffi::LUA_REGISTRYINDEX, cstr!("__MLUA_LOADER_CACHE"));
+            ffi::luaL_getsubtable(state, ffi::LUA_REGISTRYINDEX, cstr!("__ULUA_LOADER_CACHE"));
         })
     }?;
 
@@ -622,7 +622,7 @@ pub(super) fn create_require_function<R: Require + MaybeSend + 'static>(
         "#,
     )
     .try_cache()
-    .set_name("=__mlua_require")
+    .set_name("=__ulua_require")
     .set_environment(env)
     .into_function()
 }

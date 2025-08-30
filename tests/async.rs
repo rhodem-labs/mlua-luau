@@ -7,7 +7,7 @@ use std::time::Duration;
 use futures_util::stream::TryStreamExt;
 use tokio::sync::Mutex;
 
-use mlua_luau::{
+use ulua::{
     Error, Function, Lua, LuaOptions, MultiValue, ObjectLike, Result, StdLib, Table, ThreadStatus, UserData,
     UserDataMethods, UserDataRef, Value,
 };

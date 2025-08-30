@@ -1,6 +1,6 @@
 use std::os::raw::c_void;
 
-use mlua_luau::{Function, LightUserData, Lua, Number, Result, String as LuaString, Thread};
+use ulua::{Function, LightUserData, Lua, Number, Result, String as LuaString, Thread};
 
 #[test]
 fn test_lightuserdata() -> Result<()> {

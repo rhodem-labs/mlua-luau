@@ -1,19 +1,17 @@
 [package]
-name = "mlua-sys"
+name = "ulua-sys"
 version = "0.8.3"
-authors = ["Luc Rodriguez <labs@rhodem.com>", "Aleksandr Orlenko <zxteam@pm.me>"]
+authors = ["Luc Rodriguez <labs@rhodem.com>"]
 rust-version = "1.71"
 edition = "2021"
-repository = "https://github.com/rhodem-labs/mlua-luau"
-documentation = "https://docs.rs/mlua-sys"
+repository = "https://github.com/rhodem-labs/ulua"
+documentation = "https://docs.rs/ulua-sys"
 readme = "README.md"
 categories = ["external-ffi-bindings"]
 license = "MIT"
 links = "lua"
 build = "build/main.rs"
-description = """
-Low level (FFI) bindings to Luau
-"""
+description = "Low level (FFI) bindings to Luau"
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--cfg", "docsrs"]

@@ -1,7 +1,7 @@
 macro_rules! bug_msg {
     ($arg:expr) => {
         concat!(
-            "mlua internal error: ",
+            "ulua internal error: ",
             $arg,
             " (this is a bug, please file an issue)"
         )
@@ -14,13 +14,13 @@ macro_rules! cstr {
     };
 }
 
-macro_rules! mlua_panic {
+macro_rules! ulua_panic {
     ($msg:expr) => {
         panic!(bug_msg!($msg))
     };
 
     ($msg:expr,) => {
-        mlua_panic!($msg)
+        ulua_panic!($msg)
     };
 
     ($msg:expr, $($arg:expr),+) => {
@@ -28,17 +28,17 @@ macro_rules! mlua_panic {
     };
 
     ($msg:expr, $($arg:expr),+,) => {
-        mlua_panic!($msg, $($arg),+)
+        ulua_panic!($msg, $($arg),+)
     };
 }
 
-macro_rules! mlua_assert {
+macro_rules! ulua_assert {
     ($cond:expr, $msg:expr) => {
         assert!($cond, bug_msg!($msg));
     };
 
     ($cond:expr, $msg:expr,) => {
-        mlua_assert!($cond, $msg);
+        ulua_assert!($cond, $msg);
     };
 
     ($cond:expr, $msg:expr, $($arg:expr),+) => {
@@ -46,17 +46,17 @@ macro_rules! mlua_assert {
     };
 
     ($cond:expr, $msg:expr, $($arg:expr),+,) => {
-        mlua_assert!($cond, $msg, $($arg),+);
+        ulua_assert!($cond, $msg, $($arg),+);
     };
 }
 
-macro_rules! mlua_debug_assert {
+macro_rules! ulua_debug_assert {
     ($cond:expr, $msg:expr) => {
         debug_assert!($cond, bug_msg!($msg));
     };
 
     ($cond:expr, $msg:expr,) => {
-        mlua_debug_assert!($cond, $msg);
+        ulua_debug_assert!($cond, $msg);
     };
 
     ($cond:expr, $msg:expr, $($arg:expr),+) => {
@@ -64,17 +64,17 @@ macro_rules! mlua_debug_assert {
     };
 
     ($cond:expr, $msg:expr, $($arg:expr),+,) => {
-        mlua_debug_assert!($cond, $msg, $($arg),+);
+        ulua_debug_assert!($cond, $msg, $($arg),+);
     };
 }
 
-macro_rules! mlua_expect {
+macro_rules! ulua_expect {
     ($res:expr, $msg:expr) => {
         $res.expect(bug_msg!($msg))
     };
 
     ($res:expr, $msg:expr,) => {
-        mlua_expect!($res, $msg)
+        ulua_expect!($res, $msg)
     };
 }
 

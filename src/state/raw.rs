@@ -132,14 +132,14 @@ impl RawLua {
         let rawlua = Self::init_from_ptr(state, true);
         let extra = rawlua.lock().extra.get();
 
-        mlua_expect!(
+        ulua_expect!(
             load_std_libs(state, libs),
             "Error during loading standard libraries"
         );
         (*extra).libs |= libs;
 
         if !options.catch_rust_panics {
-            mlua_expect!(
+            ulua_expect!(
                 (|| -> Result<()> {
                     let _sg = StackGuard::new(state);
 
@@ -174,7 +174,7 @@ impl RawLua {
         let main_state = get_main_state(state).unwrap_or(state);
         let main_state_top = ffi::lua_gettop(main_state);
 
-        mlua_expect!(
+        ulua_expect!(
             (|state| {
                 init_error_registry(state)?;
 
@@ -213,7 +213,7 @@ impl RawLua {
             .insert(destructed_mt_ptr, Some(destructed_ud_typeid));
         ffi::lua_pop(main_state, 1);
 
-        mlua_debug_assert!(
+        ulua_debug_assert!(
             ffi::lua_gettop(main_state) == main_state_top,
             "stack leak during creation"
         );
@@ -580,7 +580,7 @@ impl RawLua {
 
             ffi::LUA_TVECTOR => {
                 let v = ffi::lua_tovector(state, idx);
-                mlua_debug_assert!(!v.is_null(), "vector is null");
+                ulua_debug_assert!(!v.is_null(), "vector is null");
                 #[cfg(not(feature = "vector4"))]
                 return Value::Vector(crate::Vector([*v, *v.add(1), *v.add(2)]));
                 #[cfg(feature = "vector4")]
@@ -672,7 +672,7 @@ impl RawLua {
 
     pub(crate) unsafe fn drop_ref(&self, vref: &ValueRef) {
         let ref_thread = self.ref_thread();
-        mlua_debug_assert!(
+        ulua_debug_assert!(
             ffi::lua_gettop(ref_thread) >= vref.index,
             "GC finalizer is not allowed in ref_thread"
         );

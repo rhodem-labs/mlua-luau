@@ -21,10 +21,10 @@ pub(crate) use userdata::{
 // panic with an internal error message.
 #[inline]
 pub(crate) unsafe fn assert_stack(state: *mut ffi::lua_State, amount: c_int) {
-    // TODO: This should only be triggered when there is a logic error in `mlua`. In the future,
+    // TODO: This should only be triggered when there is a logic error in `ulua`. In the future,
     // when there is a way to be confident about stack safety and test it, this could be enabled
     // only when `cfg!(debug_assertions)` is true.
-    mlua_assert!(ffi::lua_checkstack(state, amount) != 0, "out of stack space");
+    ulua_assert!(ffi::lua_checkstack(state, amount) != 0, "out of stack space");
 }
 
 // Checks that Lua has enough free stack space and returns `Error::StackError` on failure.
@@ -72,7 +72,7 @@ impl Drop for StackGuard {
         unsafe {
             let top = ffi::lua_gettop(self.state);
             if top < self.top {
-                mlua_panic!("{} too many stack values popped", self.top - top)
+                ulua_panic!("{} too many stack values popped", self.top - top)
             }
             if top > self.top {
                 ffi::lua_settop(self.state, self.top);
@@ -239,7 +239,7 @@ pub(crate) unsafe fn to_string(state: *mut ffi::lua_State, index: c_int) -> Stri
         }
         ffi::LUA_TVECTOR => {
             let v = ffi::lua_tovector(state, index);
-            mlua_debug_assert!(!v.is_null(), "vector is null");
+            ulua_debug_assert!(!v.is_null(), "vector is null");
             let (x, y, z) = (*v, *v.add(1), *v.add(2));
             #[cfg(not(feature = "vector4"))]
             return format!("vector({x}, {y}, {z})");

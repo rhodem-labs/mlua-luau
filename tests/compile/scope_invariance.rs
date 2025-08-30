@@ -1,4 +1,4 @@
-use mlua::Lua;
+use ulua::Lua;
 
 struct Test {
     field: i32,

@@ -102,7 +102,7 @@ where
 //   3) Otherwise, interprets the error as the appropriate lua error.
 // Uses 2 stack spaces, does not call checkstack.
 pub(crate) unsafe fn pop_error(state: *mut ffi::lua_State, err_code: c_int) -> Error {
-    mlua_debug_assert!(
+    ulua_debug_assert!(
         err_code != ffi::LUA_OK && err_code != ffi::LUA_YIELD,
         "pop_error called with non-error return code"
     );
@@ -141,7 +141,7 @@ pub(crate) unsafe fn pop_error(state: *mut ffi::lua_State, err_code: c_int) -> E
                     Error::RuntimeError(err_string)
                 }
                 ffi::LUA_ERRMEM => Error::MemoryError(err_string),
-                _ => mlua_panic!("unrecognized lua error code"),
+                _ => ulua_panic!("unrecognized lua error code"),
             }
         }
     }
@@ -330,7 +330,7 @@ pub(crate) unsafe fn init_error_registry(state: *mut ffi::lua_State) -> Result<(
                 }
                 Some(WrappedFailure::Panic(None)) => Err(Error::PreviouslyResumedPanic),
                 _ => {
-                    // I'm not sure whether this is possible to trigger without bugs in mlua?
+                    // I'm not sure whether this is possible to trigger without bugs in ulua?
                     Err(Error::UserDataTypeMismatch)
                 }
             }?;

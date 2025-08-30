@@ -6,7 +6,7 @@ use std::string::String as StdString;
 use std::sync::Arc;
 use std::{error, f32, f64, fmt};
 
-use mlua_luau::{
+use ulua::{
     ffi, ChunkMode, Error, ExternalError, Function, Lua, LuaOptions, Nil, Result, StdLib, String, Table,
     UserData, Value, Variadic,
 };
@@ -128,7 +128,7 @@ fn test_load_mode() -> Result<()> {
         Err(e) => panic!("expected SyntaxError, got {:?}", e),
     };
 
-    let bytecode = mlua_luau::Compiler::new().compile("return 1 + 1")?;
+    let bytecode = ulua::Compiler::new().compile("return 1 + 1")?;
     assert_eq!(lua.load(&bytecode).eval::<i32>()?, 2);
     assert_eq!(lua.load(&bytecode).set_mode(ChunkMode::Binary).eval::<i32>()?, 2);
     match lua.load(&bytecode).set_mode(ChunkMode::Text).exec() {
@@ -894,7 +894,7 @@ fn test_rust_function() -> Result<()> {
 fn test_c_function() -> Result<()> {
     let lua = Lua::new();
 
-    extern "C-unwind" fn c_function(state: *mut mlua_luau::lua_State) -> std::os::raw::c_int {
+    extern "C-unwind" fn c_function(state: *mut ulua::lua_State) -> std::os::raw::c_int {
         unsafe {
             ffi::lua_pushboolean(state, 1);
             ffi::lua_setglobal(state, b"c_function\0" as *const _ as *const _);

@@ -96,7 +96,7 @@ pub(crate) unsafe fn push_userdata<T>(state: *mut ffi::lua_State, t: T, protect:
 #[track_caller]
 pub(crate) unsafe fn get_userdata<T>(state: *mut ffi::lua_State, index: c_int) -> *mut T {
     let ud = ffi::lua_touserdata(state, index) as *mut T;
-    mlua_debug_assert!(!ud.is_null(), "userdata pointer is null");
+    ulua_debug_assert!(!ud.is_null(), "userdata pointer is null");
     ud
 }
 

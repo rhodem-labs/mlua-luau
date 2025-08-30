@@ -1,4 +1,4 @@
-use mlua::{Lua, UserData};
+use ulua::{Lua, UserData};
 
 fn main() {
     struct MyUserData<'a>(&'a mut i32);

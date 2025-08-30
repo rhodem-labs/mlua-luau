@@ -1,5 +1,5 @@
 use bstr::{BStr, BString};
-use mlua_luau::{Lua, Result};
+use ulua::{Lua, Result};
 
 #[test]
 fn test_byte_string_round_trip() -> Result<()> {

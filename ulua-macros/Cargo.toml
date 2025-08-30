@@ -1,11 +1,11 @@
 [package]
-name = "mlua-macros"
+name = "ulua-macros"
 version = "0.11.0"
-authors = ["Luc Rodriguez <labs@rhodem.com>", "Aleksandr Orlenko <zxteam@pm.me>"]
+authors = ["Luc Rodriguez <labs@rhodem.com>"]
 edition = "2021"
-description = "Procedural macros for the mlua-luau crate."
-repository = "https://github.com/rhodem-labs/mlua-luau"
-keywords = ["lua", "mlua-luau"]
+description = "Procedural macros for the ulua crate."
+repository = "https://github.com/rhodem-labs/ulua"
+keywords = ["lua", "ulua"]
 license = "MIT"
 
 [lib]

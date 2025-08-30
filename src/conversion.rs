@@ -660,7 +660,7 @@ impl FromLua for BString {
             ffi::LUA_TBUFFER => {
                 let mut size = 0;
                 let buf = ffi::lua_tobuffer(state, idx, &mut size);
-                mlua_assert!(!buf.is_null(), "invalid Luau buffer");
+                ulua_assert!(!buf.is_null(), "invalid Luau buffer");
                 Ok(slice::from_raw_parts(buf as *const u8, size).into())
             }
             type_id => {
