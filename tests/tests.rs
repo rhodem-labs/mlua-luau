@@ -539,17 +539,12 @@ fn test_num_conversion() -> Result<()> {
     // Negative zero
     let negative_zero = lua.load("-0.0").eval::<f64>()?;
     assert_eq!(negative_zero, 0.0);
-    // LuaJIT treats -0.0 as a positive zero
-    #[cfg(not(feature = "luajit"))]
     assert!(negative_zero.is_sign_negative());
 
     // In Lua <5.3 all numbers are floats
-    #[cfg(not(any(feature = "lua54", feature = "lua53", feature = "luajit")))]
-    {
-        let negative_zero = lua.load("-0").eval::<f64>()?;
-        assert_eq!(negative_zero, 0.0);
-        assert!(negative_zero.is_sign_negative());
-    }
+    let negative_zero = lua.load("-0").eval::<f64>()?;
+    assert_eq!(negative_zero, 0.0);
+    assert!(negative_zero.is_sign_negative());
 
     Ok(())
 }
@@ -564,18 +559,6 @@ fn test_pcall_xpcall() -> Result<()> {
     assert!(lua.load("pcall()").exec().is_err());
     assert!(lua.load("xpcall()").exec().is_err());
     assert!(lua.load("xpcall(function() end)").exec().is_err());
-
-    // Lua >= 5.2 compatible version of xpcall for 5.1
-    #[cfg(feature = "lua51")]
-    lua.load(
-        r#"
-        local xpcall_orig = xpcall
-        function xpcall(f, err, ...)
-            return xpcall_orig(function() return f(unpack(arg)) end, err)
-        end
-    "#,
-    )
-    .exec()?;
 
     // Make sure that the return values from are correct on success
 
@@ -608,13 +591,6 @@ fn test_pcall_xpcall() -> Result<()> {
     assert_eq!(globals.get::<String>("pcall_error")?, "testerror");
 
     assert_eq!(globals.get::<bool>("xpcall_statusr")?, false);
-    #[cfg(any(feature = "lua54", feature = "lua53", feature = "lua52", feature = "luajit"))]
-    assert_eq!(globals.get::<std::string::String>("xpcall_error")?, "testerror");
-    #[cfg(feature = "lua51")]
-    assert!(globals
-        .get::<String>("xpcall_error")?
-        .to_str()?
-        .ends_with(": testerror"));
 
     // Make sure that weird xpcall error recursion at least doesn't cause unsafety or panics.
     lua.load(
@@ -971,7 +947,6 @@ fn test_too_many_arguments() -> Result<()> {
 }
 
 #[test]
-#[cfg(not(feature = "luajit"))]
 #[cfg(not(target_arch = "wasm32"))]
 fn test_too_many_recursions() -> Result<()> {
     let lua = Lua::new();
@@ -1206,19 +1181,6 @@ fn test_inspect_stack() -> Result<()> {
     )
     .exec()?;
 
-    // LuaJIT does not pass this test for some reason
-    #[cfg(feature = "lua51")]
-    lua.load(
-        r#"
-        local stack_info = stack_info
-        local function baz(a, b, c, ...)
-            return stack_info()
-        end
-        assert(baz() == 'DebugStack { num_ups: 1 }')
-    "#,
-    )
-    .exec()?;
-
     // Test retrieving currently running function
     let running_function =
         lua.create_function(|lua, ()| Ok(lua.inspect_stack(1, |debug| debug.function())))?;
@@ -1255,81 +1217,6 @@ fn test_multi_states() -> Result<()> {
 
     lua.load("f(function() coroutine.wrap(function() f() end)() end)")
         .exec()?;
-
-    Ok(())
-}
-
-#[test]
-#[cfg(feature = "lua54")]
-fn test_warnings() -> Result<()> {
-    let lua = Lua::new();
-    lua.set_app_data::<Vec<(StdString, bool)>>(Vec::new());
-
-    lua.set_warning_function(|lua, msg, incomplete| {
-        lua.app_data_mut::<Vec<(StdString, bool)>>()
-            .unwrap()
-            .push((msg.to_string(), incomplete));
-        Ok(())
-    });
-
-    lua.warning("native warning ...", true);
-    lua.warning("finish", false);
-    lua.warning("\0", false);
-    lua.load(r#"warn("lua warning", "continue")"#).exec()?;
-
-    lua.remove_warning_function();
-    lua.warning("one more warning", false);
-
-    let messages = lua.app_data_ref::<Vec<(StdString, bool)>>().unwrap();
-    assert_eq!(
-        *messages,
-        vec![
-            ("native warning ...".to_string(), true),
-            ("finish".to_string(), false),
-            ("".to_string(), false),
-            ("lua warning".to_string(), true),
-            ("continue".to_string(), false),
-        ]
-    );
-
-    // Trigger error inside warning
-    lua.set_warning_function(|_, _, _| Err(Error::runtime("warning error")));
-    assert!(matches!(
-        lua.load(r#"warn("test")"#).exec(),
-        Err(Error::RuntimeError(ref err)) if err == "warning error"
-    ));
-
-    // Recursive warning
-    lua.set_warning_function(|lua, _, _| {
-        lua.warning("inner", false);
-        Ok(())
-    });
-    lua.warning("hello", false);
-
-    Ok(())
-}
-
-#[test]
-#[cfg(feature = "luajit")]
-fn test_luajit_cdata() -> Result<()> {
-    let lua = unsafe { Lua::unsafe_new() };
-
-    let cdata = lua
-        .load(
-            r#"
-        local ffi = require("ffi")
-        ffi.cdef[[
-            void *malloc(size_t size);
-            void free(void *ptr);
-        ]]
-        local ptr = ffi.C.malloc(1)
-        ffi.C.free(ptr)
-        return ptr
-    "#,
-        )
-        .eval::<Value>()?;
-    assert_eq!(cdata.type_name(), "other");
-    assert!(cdata.to_string()?.starts_with("cdata<void *>:"));
 
     Ok(())
 }

@@ -249,38 +249,6 @@ async fn test_async_return_async_closure() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "lua54")]
-#[tokio::test]
-async fn test_async_lua54_to_be_closed() -> Result<()> {
-    let lua = Lua::new();
-
-    let globals = lua.globals();
-    globals.set("close_count", 0)?;
-
-    let code = r#"
-        local t <close> = setmetatable({}, {
-            __close = function()
-                close_count = close_count + 1
-            end
-        })
-        error "test"
-    "#;
-    let f = lua.load(code).into_function()?;
-
-    // Test close using call_async
-    let _ = f.call_async::<()>(()).await;
-    assert_eq!(globals.get::<usize>("close_count")?, 1);
-
-    // Don't close by default when awaiting async threads
-    let co = lua.create_thread(f.clone())?;
-    let _ = co.clone().into_async::<()>(())?.await;
-    assert_eq!(globals.get::<usize>("close_count")?, 1);
-    let _ = co.reset(f);
-    assert_eq!(globals.get::<usize>("close_count")?, 2);
-
-    Ok(())
-}
-
 #[tokio::test]
 async fn test_async_thread_stream() -> Result<()> {
     let lua = Lua::new();

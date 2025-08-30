@@ -53,7 +53,6 @@ pub struct FunctionInfo {
 }
 
 /// Luau function coverage snapshot.
-#[cfg_attr(docsrs, doc)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CoverageInfo {
     pub function: Option<String>,
@@ -72,7 +71,7 @@ impl Function {
     /// Call Lua's built-in `tostring` function:
     ///
     /// ```
-    /// # use mlua::{Function, Lua, Result};
+    /// # use mlua_luau::{Function, Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let globals = lua.globals();
@@ -88,7 +87,7 @@ impl Function {
     /// Call a function with multiple arguments:
     ///
     /// ```
-    /// # use mlua::{Function, Lua, Result};
+    /// # use mlua_luau::{Function, Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let sum: Function = lua.load(
@@ -137,7 +136,7 @@ impl Function {
     ///
     /// ```
     /// use std::time::Duration;
-    /// # use mlua::{Lua, Result};
+    /// # use mlua_luau::{Lua, Result};
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
     /// # let lua = Lua::new();
@@ -178,7 +177,7 @@ impl Function {
     /// # Examples
     ///
     /// ```
-    /// # use mlua::{Function, Lua, Result};
+    /// # use mlua_luau::{Function, Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let sum: Function = lua.load(
@@ -344,7 +343,6 @@ impl Function {
     /// Recording of coverage information is controlled by [`Compiler::set_coverage_level`] option.
     ///
     /// [`Compiler::set_coverage_level`]: crate::chunk::Compiler::set_coverage_level
-    #[cfg_attr(docsrs, doc)]
     pub fn coverage<F>(&self, func: F)
     where
         F: FnMut(CoverageInfo),
@@ -405,7 +403,6 @@ impl Function {
     /// Copies the function prototype and all its upvalues to the
     /// newly created function.
     /// This function returns shallow clone (same handle) for Rust/C functions.
-    #[cfg_attr(docsrs, doc)]
     pub fn deep_clone(&self) -> Result<Self> {
         let lua = self.0.lua.lock();
         let state = lua.state();

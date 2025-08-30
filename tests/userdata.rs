@@ -135,18 +135,6 @@ fn test_metamethods() -> Result<()> {
                     Err("no such custom index".into_lua_err())
                 }
             });
-            #[cfg(any(feature = "lua54", feature = "lua53", feature = "lua52", feature = "luajit52"))]
-            methods.add_meta_method(MetaMethod::Pairs, |lua, data, ()| {
-                use std::iter::FromIterator;
-                let stateless_iter = lua.create_function(|_, (data, i): (UserDataRef<Self>, i64)| {
-                    let i = i + 1;
-                    if i <= data.0 {
-                        return Ok(mlua::Variadic::from_iter(vec![i, i]));
-                    }
-                    return Ok(mlua::Variadic::new());
-                })?;
-                Ok((stateless_iter, data.clone(), 0))
-            });
         }
     }
 
@@ -162,21 +150,6 @@ fn test_metamethods() -> Result<()> {
         10
     );
 
-    #[cfg(any(feature = "lua54", feature = "lua53", feature = "lua52", feature = "luajit52"))]
-    let pairs_it = lua
-        .load(
-            r#"
-            function()
-                local r = 0
-                for i, v in pairs(userdata1) do
-                    r = r + v
-                end
-                return r
-            end
-        "#,
-        )
-        .eval::<Function>()?;
-
     assert_eq!(
         lua.load("userdata1 - userdata2")
             .eval::<UserDataRef<MyUserData>>()?
@@ -186,9 +159,6 @@ fn test_metamethods() -> Result<()> {
     assert_eq!(lua.load("userdata1:get()").eval::<i64>()?, 7);
     assert_eq!(lua.load("userdata2.inner").eval::<i64>()?, 3);
     assert!(lua.load("userdata2.nonexist_field").eval::<()>().is_err());
-
-    #[cfg(any(feature = "lua54", feature = "lua53", feature = "lua52", feature = "luajit52"))]
-    assert_eq!(pairs_it.call::<i64>(())?, 28);
 
     let userdata2: Value = globals.get("userdata2")?;
     let userdata3: Value = globals.get("userdata3")?;
@@ -202,52 +172,6 @@ fn test_metamethods() -> Result<()> {
     assert!(userdata1.metatable()?.contains(MetaMethod::Sub)?);
     assert!(userdata1.metatable()?.contains(MetaMethod::Index)?);
     assert!(!userdata1.metatable()?.contains(MetaMethod::Pow)?);
-
-    Ok(())
-}
-
-#[cfg(feature = "lua54")]
-#[test]
-fn test_metamethod_close() -> Result<()> {
-    #[derive(Clone)]
-    struct MyUserData(Arc<AtomicI64>);
-
-    impl UserData for MyUserData {
-        fn add_methods<M: UserDataMethods<Self>>(methods: &mut M) {
-            methods.add_method("get", |_, data, ()| Ok(data.0.load(Ordering::Relaxed)));
-            methods.add_meta_method(MetaMethod::Close, |_, data, _err: Value| {
-                data.0.store(0, Ordering::Relaxed);
-                Ok(())
-            });
-        }
-    }
-
-    let lua = Lua::new();
-    let globals = lua.globals();
-
-    let ud = MyUserData(Arc::new(AtomicI64::new(-1)));
-    let ud2 = ud.clone();
-
-    globals.set(
-        "new_userdata",
-        lua.create_function(move |_lua, val: i64| {
-            let ud = ud2.clone();
-            ud.0.store(val, Ordering::Relaxed);
-            Ok(ud)
-        })?,
-    )?;
-
-    lua.load(
-        r#"
-        do
-            local ud <close> = new_userdata(7)
-            assert(ud:get() == 7)
-        end
-    "#,
-    )
-    .exec()?;
-
-    assert_eq!(ud.0.load(Ordering::Relaxed), 0);
 
     Ok(())
 }

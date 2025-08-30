@@ -151,7 +151,6 @@ pub enum ChunkMode {
 }
 
 /// Represents a constant value that can be used by Luau compiler.
-#[cfg_attr(docsrs, doc)]
 #[derive(Clone, Debug)]
 pub enum CompileConstant {
     Nil,
@@ -188,7 +187,6 @@ impl From<&str> for CompileConstant {
 type LibraryMemberConstantMap = HashMap<(StdString, StdString), CompileConstant>;
 
 /// Luau compiler
-#[cfg_attr(docsrs, doc)]
 #[derive(Clone, Debug)]
 pub struct Compiler {
     optimization_level: u8,
@@ -631,9 +629,7 @@ impl Chunk<'_> {
     /// Load this chunk into a regular [`Function`].
     ///
     /// This simply compiles the chunk without actually executing it.
-    #[cfg_attr(not(feature = "luau"), allow(unused_mut))]
     pub fn into_function(mut self) -> Result<Function> {
-        #[cfg(feature = "luau")]
         if self.compiler.is_some() {
             // We don't need to compile source if no compiler set
             self.compile();
@@ -706,8 +702,8 @@ impl Chunk<'_> {
         let source = self.source.as_ref();
         let source = source.map_err(Error::runtime)?;
         let source = Self::expression_source(source);
+
         // We don't need to compile source if no compiler options set
-        #[cfg(feature = "luau")]
         let source = self
             .compiler
             .as_ref()

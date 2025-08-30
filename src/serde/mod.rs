@@ -21,7 +21,7 @@ pub trait LuaSerdeExt: Sealed {
     ///
     /// ```
     /// use std::collections::HashMap;
-    /// use mlua::{Lua, Result, LuaSerdeExt};
+    /// use mlua_luau::{Lua, Result, LuaSerdeExt};
     ///
     /// fn main() -> Result<()> {
     ///     let lua = Lua::new();
@@ -43,7 +43,7 @@ pub trait LuaSerdeExt: Sealed {
     /// # Example
     ///
     /// ```
-    /// use mlua::{Lua, Result, LuaSerdeExt};
+    /// use mlua_luau::{Lua, Result, LuaSerdeExt};
     /// use serde_json::Value as JsonValue;
     ///
     /// fn main() -> Result<()> {
@@ -72,7 +72,7 @@ pub trait LuaSerdeExt: Sealed {
     /// # Example
     ///
     /// ```
-    /// use mlua::{Lua, Result, LuaSerdeExt};
+    /// use mlua_luau::{Lua, Result, LuaSerdeExt};
     /// use serde::Serialize;
     ///
     /// #[derive(Serialize)]
@@ -101,7 +101,7 @@ pub trait LuaSerdeExt: Sealed {
     /// # Example
     ///
     /// ```
-    /// use mlua::{Lua, Result, LuaSerdeExt, SerializeOptions};
+    /// use mlua_luau::{Lua, Result, LuaSerdeExt, SerializeOptions};
     ///
     /// fn main() -> Result<()> {
     ///     let lua = Lua::new();
@@ -124,7 +124,7 @@ pub trait LuaSerdeExt: Sealed {
     /// # Example
     ///
     /// ```
-    /// use mlua::{Lua, Result, LuaSerdeExt};
+    /// use mlua_luau::{Lua, Result, LuaSerdeExt};
     /// use serde::Deserialize;
     ///
     /// #[derive(Deserialize, Debug, PartialEq)]
@@ -151,7 +151,7 @@ pub trait LuaSerdeExt: Sealed {
     /// # Example
     ///
     /// ```
-    /// use mlua::{Lua, Result, LuaSerdeExt, DeserializeOptions};
+    /// use mlua_luau::{Lua, Result, LuaSerdeExt, DeserializeOptions};
     /// use serde::Deserialize;
     ///
     /// #[derive(Deserialize, Debug, PartialEq)]

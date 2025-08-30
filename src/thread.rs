@@ -110,7 +110,7 @@ impl Thread {
     /// # Examples
     ///
     /// ```
-    /// # use mlua::{Error, Lua, Result, Thread};
+    /// # use mlua_luau::{Error, Lua, Result, Thread};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let thread: Thread = lua.load(r#"
@@ -170,7 +170,6 @@ impl Thread {
     /// Resumes execution of this thread, immediately raising an error.
     ///
     /// This is a Luau specific extension.
-    #[cfg_attr(docsrs, doc)]
     pub fn resume_error<R>(&self, error: impl crate::IntoLua) -> Result<R>
     where
         R: FromLuaMulti,
@@ -320,7 +319,7 @@ impl Thread {
     /// # Examples
     ///
     /// ```
-    /// # use mlua::{Lua, Result, Thread};
+    /// # use mlua_luau::{Lua, Result, Thread};
     /// use futures_util::stream::TryStreamExt;
     /// # #[tokio::main]
     /// # async fn main() -> Result<()> {
@@ -414,8 +413,7 @@ impl Thread {
     /// # Examples
     ///
     /// ```
-    /// # use mlua::{Lua, Result};
-    /// # #[cfg(feature = "luau")]
+    /// # use mlua_luau::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     /// let thread = lua.create_thread(lua.create_function(|lua2, ()| {
@@ -430,11 +428,7 @@ impl Thread {
     /// assert_eq!(lua.globals().get::<Option<u32>>("var")?, None);
     /// # Ok(())
     /// # }
-    ///
-    /// # #[cfg(not(feature = "luau"))]
-    /// # fn main() { }
     /// ```
-    #[cfg_attr(docsrs, doc)]
     pub fn sandbox(&self) -> Result<()> {
         let lua = self.0.lua.lock();
         let state = lua.state();

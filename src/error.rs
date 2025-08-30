@@ -40,12 +40,6 @@ pub enum Error {
     /// The Lua VM returns this error when the allocator does not return the requested memory, aka
     /// it is an out-of-memory error.
     MemoryError(StdString),
-    /// Lua garbage collector error, aka `LUA_ERRGCMM`.
-    ///
-    /// The Lua VM returns this error when there is an error running a `__gc` metamethod.
-    #[cfg(any(feature = "lua53", feature = "lua52", doc))]
-    #[cfg_attr(docsrs, doc(cfg(any(feature = "lua53", feature = "lua52"))))]
-    GarbageCollectorError(StdString),
     /// Potentially unsafe action in safe mode.
     SafetyError(StdString),
     /// Memory control is not available.
@@ -218,10 +212,6 @@ impl fmt::Display for Error {
             Error::RuntimeError(msg) => write!(fmt, "runtime error: {msg}"),
             Error::MemoryError(msg) => {
                 write!(fmt, "memory error: {msg}")
-            }
-            #[cfg(any(feature = "lua53", feature = "lua52"))]
-            Error::GarbageCollectorError(msg) => {
-                write!(fmt, "garbage collector error: {msg}")
             }
             Error::SafetyError(msg) => {
                 write!(fmt, "safety error: {msg}")

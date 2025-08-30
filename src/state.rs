@@ -69,9 +69,6 @@ pub(crate) struct LuaGuard(ArcReentrantMutexGuard<RawLua>);
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GCMode {
     Incremental,
-    #[cfg(feature = "lua54")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "lua54")))]
-    Generational,
 }
 
 /// Controls Lua interpreter behavior such as Rust panics handling.
@@ -266,7 +263,7 @@ impl Lua {
     ///
     /// # Example
     /// ```
-    /// # use mlua::{Lua, Result};
+    /// # use mlua_luau::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     /// let n: i32 = unsafe {
@@ -377,14 +374,6 @@ impl Lua {
         Self::entrypoint(state, move |lua, _: ()| func(lua))
     }
 
-    /// Skips memory checks for some operations.
-    #[doc(hidden)]
-    #[cfg(feature = "module")]
-    pub fn skip_memory_check(&self, skip: bool) {
-        let lua = self.lock();
-        unsafe { (*lua.extra.get()).skip_memory_check = skip };
-    }
-
     /// Enables (or disables) sandbox mode on this Lua instance.
     ///
     /// This method, in particular:
@@ -398,8 +387,7 @@ impl Lua {
     /// # Examples
     ///
     /// ```
-    /// # use mlua::{Lua, Result};
-    /// # #[cfg(feature = "luau")]
+    /// # use mlua_luau::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     ///
@@ -412,11 +400,7 @@ impl Lua {
     /// assert_eq!(lua.globals().get::<Option<u32>>("var")?, None);
     /// # Ok(())
     /// # }
-    ///
-    /// # #[cfg(not(feature = "luau"))]
-    /// # fn main() {}
     /// ```
-    #[cfg_attr(docsrs, doc)]
     pub fn sandbox(&self, enabled: bool) -> Result<()> {
         let lua = self.lock();
         unsafe {
@@ -458,8 +442,7 @@ impl Lua {
     ///
     /// ```
     /// # use std::sync::{Arc, atomic::{AtomicU64, Ordering}};
-    /// # use mlua::{Lua, Result, ThreadStatus, VmState};
-    /// # #[cfg(feature = "luau")]
+    /// # use mlua_luau::{Lua, Result, ThreadStatus, VmState};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     /// let count = Arc::new(AtomicU64::new(0));
@@ -482,11 +465,7 @@ impl Lua {
     /// }
     /// # Ok(())
     /// # }
-    ///
-    /// # #[cfg(not(feature = "luau"))]
-    /// # fn main() {}
     /// ```
-    #[cfg_attr(docsrs, doc)]
     pub fn set_interrupt<F>(&self, callback: F)
     where
         F: Fn(&Lua) -> Result<VmState> + MaybeSend + 'static,
@@ -526,7 +505,6 @@ impl Lua {
     /// Removes any interrupt function previously set by `set_interrupt`.
     ///
     /// This function has no effect if an 'interrupt' was not previously set.
-    #[cfg_attr(docsrs, doc)]
     pub fn remove_interrupt(&self) {
         let lua = self.lock();
         unsafe {
@@ -536,7 +514,6 @@ impl Lua {
     }
 
     /// Sets a thread creation callback that will be called when a thread is created.
-    #[cfg_attr(docsrs, doc)]
     pub fn set_thread_creation_callback<F>(&self, callback: F)
     where
         F: Fn(&Lua, Thread) -> Result<()> + MaybeSend + 'static,
@@ -552,7 +529,6 @@ impl Lua {
     ///
     /// Luau GC does not support exceptions during collection, so the callback must be
     /// non-panicking. If the callback panics, the program will be aborted.
-    #[cfg_attr(docsrs, doc)]
     pub fn set_thread_collection_callback<F>(&self, callback: F)
     where
         F: Fn(crate::LightUserData) + MaybeSend + 'static,
@@ -608,7 +584,6 @@ impl Lua {
     /// [`Lua::set_thread_creation_callback`] or [`Lua::set_thread_collection_callback`].
     ///
     /// This function has no effect if a thread callbacks were not previously set.
-    #[cfg_attr(docsrs, doc)]
     pub fn remove_thread_callbacks(&self) {
         let lua = self.lock();
         unsafe {
@@ -785,7 +760,6 @@ impl Lua {
     /// including via `require` function.
     ///
     /// See [`Compiler`] for details and possible options.
-    #[cfg_attr(docsrs, doc)]
     pub fn set_compiler(&self, compiler: Compiler) {
         let lua = self.lock();
         unsafe { (*lua.extra.get()).compiler = Some(compiler) };
@@ -795,7 +769,6 @@ impl Lua {
     ///
     /// By default JIT is enabled. Changing this option does not have any effect on
     /// already loaded functions.
-    #[cfg_attr(docsrs, doc)]
     pub fn enable_jit(&self, enable: bool) {
         let lua = self.lock();
         unsafe { (*lua.extra.get()).enable_jit = enable };
@@ -856,7 +829,6 @@ impl Lua {
     /// Creates and returns a Luau [buffer] object from a byte slice of data.
     ///
     /// [buffer]: https://luau.org/library#buffer-library
-    #[cfg_attr(docsrs, doc)]
     pub fn create_buffer(&self, data: impl AsRef<[u8]>) -> Result<Buffer> {
         let lua = self.lock();
         let data = data.as_ref();
@@ -872,7 +844,6 @@ impl Lua {
     /// Size limit is 1GB. All bytes will be initialized to zero.
     ///
     /// [buffer]: https://luau.org/library#buffer-library
-    #[cfg_attr(docsrs, doc)]
     pub fn create_buffer_with_capacity(&self, size: usize) -> Result<Buffer> {
         unsafe { Ok(self.lock().create_buffer_with_capacity(size)?.1) }
     }
@@ -926,7 +897,7 @@ impl Lua {
     /// Create a function which prints its argument:
     ///
     /// ```
-    /// # use mlua::{Lua, Result};
+    /// # use mlua_luau::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let greet = lua.create_function(|_, name: String| {
@@ -941,7 +912,7 @@ impl Lua {
     /// Use tuples to accept multiple arguments:
     ///
     /// ```
-    /// # use mlua::{Lua, Result};
+    /// # use mlua_luau::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let print_person = lua.create_function(|_, (name, age): (String, u8)| {
@@ -1020,7 +991,7 @@ impl Lua {
     ///
     /// ```
     /// use std::time::Duration;
-    /// use mlua::{Lua, Result};
+    /// use mlua_luau::{Lua, Result};
     ///
     /// async fn sleep(_lua: Lua, n: u64) -> Result<&'static str> {
     ///     tokio::time::sleep(Duration::from_millis(n)).await;
@@ -1151,7 +1122,7 @@ impl Lua {
     /// # Examples
     ///
     /// ```
-    /// # use mlua::{Lua, Result, UserData, UserDataFields, UserDataMethods};
+    /// # use mlua_luau::{Lua, Result, UserData, UserDataFields, UserDataMethods};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// struct MyUserData(i32);
@@ -1190,7 +1161,7 @@ impl Lua {
     /// Change metatable for Lua boolean type:
     ///
     /// ```
-    /// # use mlua::{Lua, Result, Function};
+    /// # use mlua_luau::{Lua, Result, Function};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let mt = lua.create_table()?;
@@ -1645,7 +1616,7 @@ impl Lua {
     /// # Examples
     ///
     /// ```
-    /// use mlua::{Lua, Result};
+    /// use mlua_luau::{Lua, Result};
     ///
     /// fn hello(lua: &Lua, _: ()) -> Result<()> {
     ///     let mut s = lua.app_data_mut::<&str>().unwrap();
@@ -1777,7 +1748,7 @@ impl Lua {
     /// Async iterator:
     ///
     /// ```
-    /// # use mlua::{Lua, Result};
+    /// # use mlua_luau::{Lua, Result};
     ///
     /// async fn generator(lua: Lua, _: ()) -> Result<()> {
     ///     for i in 0..10 {
@@ -1804,7 +1775,7 @@ impl Lua {
     /// Exchange values on yield:
     ///
     /// ```
-    /// # use mlua::{Lua, Result, Value};
+    /// # use mlua_luau::{Lua, Result, Value};
     ///
     /// async fn pingpong(lua: Lua, mut val: i32) -> Result<()> {
     ///     loop {

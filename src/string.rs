@@ -29,7 +29,7 @@ impl String {
     /// # Examples
     ///
     /// ```
-    /// # use mlua::{Lua, Result, String};
+    /// # use mlua_luau::{Lua, Result, String};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let globals = lua.globals();
@@ -60,7 +60,7 @@ impl String {
     /// # Examples
     ///
     /// ```
-    /// # use mlua::{Lua, Result};
+    /// # use mlua_luau::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// let lua = Lua::new();
     ///
@@ -92,7 +92,7 @@ impl String {
     /// # Examples
     ///
     /// ```
-    /// # use mlua::{Lua, Result, String};
+    /// # use mlua_luau::{Lua, Result, String};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let non_utf8: String = lua.load(r#"  "test\255"  "#).eval()?;

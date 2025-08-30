@@ -17,11 +17,6 @@ fn test_memory_limit() -> Result<()> {
         .into_function()?;
     f.call::<()>(()).expect("should trigger no memory limit");
 
-    if cfg!(feature = "luajit") && lua.set_memory_limit(0).is_err() {
-        // seems this luajit version does not support memory limit
-        return Ok(());
-    }
-
     lua.set_memory_limit(initial_memory + 10000)?;
     match f.call::<()>(()) {
         Err(Error::MemoryError(_)) => {}
@@ -51,11 +46,6 @@ fn test_memory_limit_thread() -> Result<()> {
     let f = lua
         .load("local t = {}; for i = 1,10000 do t[i] = i end")
         .into_function()?;
-
-    if cfg!(feature = "luajit") && lua.set_memory_limit(0).is_err() {
-        // seems this luajit version does not support memory limit
-        return Ok(());
-    }
 
     let thread = lua.create_thread(f)?;
     lua.set_memory_limit(lua.used_memory() + 10000)?;

@@ -39,7 +39,7 @@ impl Table {
     /// Export a value as a global to make it usable from Lua:
     ///
     /// ```
-    /// # use mlua::{Lua, Result};
+    /// # use mlua_luau::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let globals = lua.globals();
@@ -95,7 +95,7 @@ impl Table {
     /// Query the version of the Lua interpreter:
     ///
     /// ```
-    /// # use mlua::{Lua, Result};
+    /// # use mlua_luau::{Lua, Result};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let globals = lua.globals();
@@ -200,7 +200,7 @@ impl Table {
     /// Compare two tables using `__eq` metamethod:
     ///
     /// ```
-    /// # use mlua::{Lua, Result, Table};
+    /// # use mlua_luau::{Lua, Result, Table};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let table1 = lua.create_table()?;
@@ -498,7 +498,6 @@ impl Table {
     }
 
     /// Sets `readonly` attribute on the table.
-    #[cfg_attr(docsrs, doc)]
     pub fn set_readonly(&self, enabled: bool) {
         let lua = self.0.lua.lock();
         let ref_thread = lua.ref_thread();
@@ -512,7 +511,6 @@ impl Table {
     }
 
     /// Returns `readonly` attribute of the table.
-    #[cfg_attr(docsrs, doc)]
     pub fn is_readonly(&self) -> bool {
         let lua = self.0.lua.lock();
         let ref_thread = lua.ref_thread();
@@ -528,7 +526,6 @@ impl Table {
     /// - Fast-path for some built-in functions (fastcall).
     ///
     /// For `safeenv` environments, monkey patching or modifying values may not work as expected.
-    #[cfg_attr(docsrs, doc)]
     pub fn set_safeenv(&self, enabled: bool) {
         let lua = self.0.lua.lock();
         unsafe { ffi::lua_setsafeenv(lua.ref_thread(), self.0.index, enabled as _) };
@@ -556,7 +553,7 @@ impl Table {
     /// Iterate over all globals:
     ///
     /// ```
-    /// # use mlua::{Lua, Result, Value};
+    /// # use mlua_luau::{Lua, Result, Value};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let globals = lua.globals();
@@ -617,7 +614,7 @@ impl Table {
     /// # Examples
     ///
     /// ```
-    /// # use mlua::{Lua, Result, Table};
+    /// # use mlua_luau::{Lua, Result, Table};
     /// # fn main() -> Result<()> {
     /// # let lua = Lua::new();
     /// let my_table: Table = lua.load(r#"

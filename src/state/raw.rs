@@ -756,18 +756,6 @@ impl RawLua {
         ffi::lua_rawgeti(state, ffi::LUA_REGISTRYINDEX, mt_id);
         ffi::lua_setmetatable(state, -2);
 
-        // Set empty environment for Lua 5.1
-        #[cfg(any(feature = "lua51", feature = "luajit"))]
-        if protect {
-            protect_lua!(state, 1, 1, fn(state) {
-                ffi::lua_newtable(state);
-                ffi::lua_setuservalue(state, -2);
-            })?;
-        } else {
-            ffi::lua_newtable(state);
-            ffi::lua_setuservalue(state, -2);
-        }
-
         Ok(AnyUserData(self.pop_ref()))
     }
 

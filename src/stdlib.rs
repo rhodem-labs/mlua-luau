@@ -18,7 +18,6 @@ impl StdLib {
     pub const STRING: StdLib = StdLib(1 << 4);
 
     /// [`utf8`](https://www.lua.org/manual/5.4/manual.html#6.5) library
-    #[cfg_attr(docsrs, doc)]
     pub const UTF8: StdLib = StdLib(1 << 5);
 
     /// [`bit`](https://www.lua.org/manual/5.2/manual.html#6.7) library
@@ -28,11 +27,9 @@ impl StdLib {
     pub const MATH: StdLib = StdLib(1 << 7);
 
     /// [`buffer`](https://luau.org/library#buffer-library) library
-    #[cfg_attr(docsrs, doc)]
     pub const BUFFER: StdLib = StdLib(1 << 9);
 
     /// [`vector`](https://luau.org/library#vector-library) library
-    #[cfg_attr(docsrs, doc)]
     pub const VECTOR: StdLib = StdLib(1 << 10);
 
     /// (**unsafe**) [`debug`](https://www.lua.org/manual/5.4/manual.html#6.10) library
