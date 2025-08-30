@@ -39,7 +39,7 @@ pub enum ThreadStatus {
 ///
 /// The number in `New` and `Yielded` variants is the number of arguments pushed
 /// to the thread stack.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 enum ThreadStatusInner {
     New(c_int),
     Running,
@@ -151,7 +151,7 @@ impl Thread {
         unsafe {
             let _sg = StackGuard::new(state);
 
-            let nargs = args.push_into_stack_multi(&lua)?;
+            let nargs = args.push_into_stack_multi(&lua, state)?;
             if nargs > 0 {
                 check_stack(thread_state, nargs)?;
                 ffi::lua_xmove(state, thread_state, nargs);
@@ -163,7 +163,7 @@ impl Thread {
             check_stack(state, nresults + 1)?;
             ffi::lua_xmove(thread_state, state, nresults);
 
-            R::from_stack_multi(nresults, &lua)
+            R::from_stack_multi(nresults, &lua, state)
         }
     }
 
@@ -187,7 +187,7 @@ impl Thread {
             let _sg = StackGuard::new(state);
 
             check_stack(state, 1)?;
-            error.push_into_stack(&lua)?;
+            error.push_into_stack(&lua, state)?;
             ffi::lua_xmove(state, thread_state, 1);
 
             let _thread_sg = StackGuard::with_top(thread_state, 0);
@@ -195,7 +195,7 @@ impl Thread {
             check_stack(state, nresults + 1)?;
             ffi::lua_xmove(thread_state, state, nresults);
 
-            R::from_stack_multi(nresults, &lua)
+            R::from_stack_multi(nresults, &lua, state)
         }
     }
 
@@ -362,7 +362,7 @@ impl Thread {
         unsafe {
             let _sg = StackGuard::new(state);
 
-            let nargs = args.push_into_stack_multi(&lua)?;
+            let nargs = args.push_into_stack_multi(&lua, state)?;
             if nargs > 0 {
                 check_stack(thread_state, nargs)?;
                 ffi::lua_xmove(state, thread_state, nargs);
@@ -373,6 +373,31 @@ impl Thread {
                 ret: PhantomData,
                 recycle: false,
             })
+        }
+    }
+
+    /// Closes a thread and marks it as finished.
+    ///
+    /// In [Lua 5.4]: cleans its call stack and closes all pending to-be-closed variables.
+    /// Returns a error in case of either the original error that stopped the thread or errors
+    /// in closing methods.
+    ///
+    /// In Luau: resets to the initial state of a newly created Lua thread.
+    /// Lua threads in arbitrary states (like yielded or errored) can be reset properly.
+    ///
+    /// Requires `feature = "lua54"` OR `feature = "luau"`.
+    ///
+    /// [Lua 5.4]: https://www.lua.org/manual/5.4/manual.html#lua_closethread
+    pub fn close(&self) -> Result<()> {
+        let lua = self.0.lua.lock();
+        if self.status_inner(&lua) == ThreadStatusInner::Running {
+            return Err(Error::runtime("cannot reset a running thread"));
+        }
+
+        let thread_state = self.state();
+        unsafe {
+            ffi::lua_resetthread(thread_state);
+            Ok(())
         }
     }
 
@@ -513,7 +538,7 @@ impl<R: FromLuaMulti> Stream for AsyncThread<R> {
             check_stack(state, nresults + 1)?;
             ffi::lua_xmove(thread_state, state, nresults);
 
-            Poll::Ready(Some(R::from_stack_multi(nresults, &lua)))
+            Poll::Ready(Some(R::from_stack_multi(nresults, &lua, state)))
         }
     }
 }
@@ -549,7 +574,7 @@ impl<R: FromLuaMulti> Future for AsyncThread<R> {
             check_stack(state, nresults + 1)?;
             ffi::lua_xmove(thread_state, state, nresults);
 
-            Poll::Ready(R::from_stack_multi(nresults, &lua))
+            Poll::Ready(R::from_stack_multi(nresults, &lua, state))
         }
     }
 }

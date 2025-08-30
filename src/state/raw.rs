@@ -348,7 +348,7 @@ impl RawLua {
             mode,
             match env {
                 Some(env) => {
-                    self.push_ref(&env.0);
+                    self.push_ref(&env.0, state);
                     -1
                 }
                 _ => 0,
@@ -419,8 +419,8 @@ impl RawLua {
         let protect = !self.unlikely_memory_error();
         push_table(state, 0, lower_bound, protect)?;
         for (k, v) in iter {
-            self.push(k)?;
-            self.push(v)?;
+            self.push(state, k)?;
+            self.push(state, v)?;
             if protect {
                 protect_lua!(state, 3, 1, fn(state) ffi::lua_rawset(state, -3))?;
             } else {
@@ -446,7 +446,7 @@ impl RawLua {
         let protect = !self.unlikely_memory_error();
         push_table(state, lower_bound, 0, protect)?;
         for (i, v) in iter.enumerate() {
-            self.push(v)?;
+            self.push(state, v)?;
             if protect {
                 protect_lua!(state, 2, 1, |state| {
                     ffi::lua_rawseti(state, -2, (i + 1) as Integer);
@@ -513,15 +513,14 @@ impl RawLua {
     ///
     /// Uses up to 2 stack spaces to push a single value, does not call `checkstack`.
     #[inline(always)]
-    pub(crate) unsafe fn push(&self, value: impl IntoLua) -> Result<()> {
-        value.push_into_stack(self)
+    pub(crate) unsafe fn push(&self, state: *mut ffi::lua_State, value: impl IntoLua) -> Result<()> {
+        value.push_into_stack(self, state)
     }
 
     /// Pushes a `Value` (by reference) onto the Lua stack.
     ///
     /// Uses 2 stack spaces, does not call `checkstack`.
-    pub(crate) unsafe fn push_value(&self, value: &Value) -> Result<()> {
-        let state = self.state();
+    pub(crate) unsafe fn push_value(&self, value: &Value, state: *mut ffi::lua_State) -> Result<()> {
         match value {
             Value::Nil => ffi::lua_pushnil(state),
             Value::Boolean(b) => ffi::lua_pushboolean(state, *b as c_int),
@@ -534,17 +533,17 @@ impl RawLua {
                 #[cfg(feature = "vector4")]
                 ffi::lua_pushvector(state, v.x(), v.y(), v.z(), v.w());
             }
-            Value::String(s) => self.push_ref(&s.0),
-            Value::Table(t) => self.push_ref(&t.0),
-            Value::Function(f) => self.push_ref(&f.0),
-            Value::Thread(t) => self.push_ref(&t.0),
-            Value::UserData(ud) => self.push_ref(&ud.0),
-            Value::Buffer(buf) => self.push_ref(&buf.0),
+            Value::String(s) => self.push_ref(&s.0, state),
+            Value::Table(t) => self.push_ref(&t.0, state),
+            Value::Function(f) => self.push_ref(&f.0, state),
+            Value::Thread(t) => self.push_ref(&t.0, state),
+            Value::UserData(ud) => self.push_ref(&ud.0, state),
+            Value::Buffer(buf) => self.push_ref(&buf.0, state),
             Value::Error(err) => {
                 let protect = !self.unlikely_memory_error();
                 push_internal_userdata(state, WrappedFailure::Error(*err.clone()), protect)?;
             }
-            Value::Other(vref) => self.push_ref(vref),
+            Value::Other(vref) => self.push_ref(vref, state),
         }
         Ok(())
     }
@@ -552,8 +551,8 @@ impl RawLua {
     /// Pops a value from the Lua stack.
     ///
     /// Uses up to 1 stack spaces, does not call `checkstack`.
-    pub(crate) unsafe fn pop_value(&self) -> Value {
-        let value = self.stack_value(-1, None);
+    pub(crate) unsafe fn pop_value(&self, state: *mut ffi::lua_State) -> Value {
+        let value = self.stack_value(-1, None, state);
         ffi::lua_pop(self.state(), 1);
         value
     }
@@ -561,23 +560,13 @@ impl RawLua {
     /// Returns value at given stack index without popping it.
     ///
     /// Uses up to 1 stack spaces, does not call `checkstack`.
-    pub(crate) unsafe fn stack_value(&self, idx: c_int, type_hint: Option<c_int>) -> Value {
-        let state = self.state();
+    pub(crate) unsafe fn stack_value(&self, idx: c_int, type_hint: Option<c_int>, state: *mut ffi::lua_State) -> Value {
         match type_hint.unwrap_or_else(|| ffi::lua_type(state, idx)) {
             ffi::LUA_TNIL => Nil,
 
             ffi::LUA_TBOOLEAN => Value::Boolean(ffi::lua_toboolean(state, idx) != 0),
 
             ffi::LUA_TLIGHTUSERDATA => Value::LightUserData(LightUserData(ffi::lua_touserdata(state, idx))),
-
-            #[cfg(any(feature = "lua54", feature = "lua53"))]
-            ffi::LUA_TNUMBER => {
-                if ffi::lua_isinteger(state, idx) != 0 {
-                    Value::Integer(ffi::lua_tointeger(state, idx))
-                } else {
-                    Value::Number(ffi::lua_tonumber(state, idx))
-                }
-            }
 
             ffi::LUA_TNUMBER => {
                 use crate::types::Number;
@@ -652,12 +641,12 @@ impl RawLua {
 
     // Pushes a ValueRef value onto the stack, uses 1 stack space, does not call checkstack
     #[inline]
-    pub(crate) fn push_ref(&self, vref: &ValueRef) {
+    pub(crate) fn push_ref(&self, vref: &ValueRef, state: *mut ffi::lua_State) {
         assert!(
             self.weak() == &vref.lua,
             "Lua instance passed Value created from a different main Lua state"
         );
-        unsafe { ffi::lua_xpush(self.ref_thread(), self.state(), vref.index) };
+        unsafe { ffi::lua_xpush(self.ref_thread(), state, vref.index) };
     }
 
     // Pops the topmost element of the stack and stores a reference to it. This pins the object,
@@ -727,7 +716,7 @@ impl RawLua {
             let mut registry = UserDataRegistry::new(self.lua());
             T::register(&mut registry);
 
-            self.create_userdata_metatable(registry.into_raw())
+            self.create_userdata_metatable(registry.into_raw(), self.state())
         })
     }
 
@@ -747,7 +736,7 @@ impl RawLua {
                 Some(registry) => registry,
                 None => UserDataRegistry::<T>::new(self.lua()).into_raw(),
             };
-            self.create_userdata_metatable(registry)
+            self.create_userdata_metatable(registry, self.state())
         })
     }
 
@@ -782,11 +771,10 @@ impl RawLua {
         Ok(AnyUserData(self.pop_ref()))
     }
 
-    pub(crate) unsafe fn create_userdata_metatable(&self, registry: RawUserDataRegistry) -> Result<Integer> {
-        let state = self.state();
+    pub(crate) unsafe fn create_userdata_metatable(&self, registry: RawUserDataRegistry, state: *mut ffi::lua_State) -> Result<Integer> {
         let type_id = registry.type_id;
 
-        self.push_userdata_metatable(registry)?;
+        self.push_userdata_metatable(registry, state)?;
 
         let mt_ptr = ffi::lua_topointer(state, -1);
         let id = protect_lua!(state, 1, 0, |state| {
@@ -801,8 +789,7 @@ impl RawLua {
         Ok(id as Integer)
     }
 
-    pub(crate) unsafe fn push_userdata_metatable(&self, mut registry: RawUserDataRegistry) -> Result<()> {
-        let state = self.state();
+    pub(crate) unsafe fn push_userdata_metatable(&self, mut registry: RawUserDataRegistry, state: *mut ffi::lua_State) -> Result<()> {
         let mut stack_guard = StackGuard::new(state);
         check_stack(state, 13)?;
 
@@ -812,18 +799,18 @@ impl RawLua {
         let metatable_nrec = metatable_nrec + registry.async_meta_methods.len();
         push_table(state, 0, metatable_nrec, true)?;
         for (k, m) in registry.meta_methods {
-            self.push(self.create_callback(m)?)?;
+            self.push(state, self.create_callback(m)?)?;
             rawset_field(state, -2, MetaMethod::validate(&k)?)?;
         }
         #[cfg(feature = "async")]
         for (k, m) in registry.async_meta_methods {
-            self.push(self.create_async_callback(m)?)?;
+            self.push(state, self.create_async_callback(m)?)?;
             rawset_field(state, -2, MetaMethod::validate(&k)?)?;
         }
         let mut has_name = false;
         for (k, v) in registry.meta_fields {
             has_name = has_name || k == MetaMethod::Type;
-            v?.push_into_stack(self)?;
+            v?.push_into_stack(self, state)?;
             rawset_field(state, -2, MetaMethod::validate(&k)?)?;
         }
         // Set `__name/__type` if not provided
@@ -846,7 +833,7 @@ impl RawLua {
                         push_table(state, 0, fields_nrec, true)?;
                     }
                     for (k, v) in mem::take(&mut registry.fields) {
-                        v?.push_into_stack(self)?;
+                        v?.push_into_stack(self, state)?;
                         rawset_field(state, -2, &k)?;
                     }
                     rawset_field(state, metatable_index, "__index")?;
@@ -863,7 +850,7 @@ impl RawLua {
         if field_getters_nrec > 0 {
             push_table(state, 0, field_getters_nrec, true)?;
             for (k, m) in registry.field_getters {
-                self.push(self.create_callback(m)?)?;
+                self.push(state,self.create_callback(m)?)?;
                 rawset_field(state, -2, &k)?;
             }
             for (k, v) in registry.fields {
@@ -871,7 +858,7 @@ impl RawLua {
                     ffi::lua_pushvalue(state, ffi::lua_upvalueindex(1));
                     1
                 }
-                v?.push_into_stack(self)?;
+                v?.push_into_stack(self, state)?;
                 protect_lua!(state, 1, 1, fn(state) {
                     ffi::lua_pushcclosure(state, return_field, 1);
                 })?;
@@ -885,7 +872,7 @@ impl RawLua {
         if field_setters_nrec > 0 {
             push_table(state, 0, field_setters_nrec, true)?;
             for (k, m) in registry.field_setters {
-                self.push(self.create_callback(m)?)?;
+                self.push(state, self.create_callback(m)?)?;
                 rawset_field(state, -2, &k)?;
             }
             field_setters_index = Some(ffi::lua_absindex(state, -1));
@@ -907,12 +894,12 @@ impl RawLua {
                 }
             }
             for (k, m) in registry.methods {
-                self.push(self.create_callback(m)?)?;
+                self.push(state, self.create_callback(m)?)?;
                 rawset_field(state, -2, &k)?;
             }
             #[cfg(feature = "async")]
             for (k, m) in registry.async_methods {
-                self.push(self.create_async_callback(m)?)?;
+                self.push(state, self.create_async_callback(m)?)?;
                 rawset_field(state, -2, &k)?;
             }
             match index_type {
@@ -1016,9 +1003,9 @@ impl RawLua {
 
     // Pushes a ValueRef (userdata) value onto the stack, returning their `TypeId`.
     // Uses 1 stack space, does not call checkstack.
-    pub(crate) unsafe fn push_userdata_ref(&self, vref: &ValueRef) -> Result<Option<TypeId>> {
+    pub(crate) unsafe fn push_userdata_ref(&self, vref: &ValueRef, state: *mut ffi::lua_State) -> Result<Option<TypeId>> {
         let type_id = self.get_userdata_type_id_inner(self.ref_thread(), vref.index)?;
-        self.push_ref(vref);
+        self.push_ref(vref, state);
         Ok(type_id)
     }
 
@@ -1134,9 +1121,9 @@ impl RawLua {
                                 Ok(nresults + 1)
                             }
                             nresults => {
-                                let results = MultiValue::from_stack_multi(nresults, rawlua)?;
+                                let results = MultiValue::from_stack_multi(nresults, rawlua, state)?;
                                 ffi::lua_pushinteger(state, nresults as _);
-                                rawlua.push(rawlua.create_sequence_from(results)?)?;
+                                rawlua.push(state, rawlua.create_sequence_from(results)?)?;
                                 Ok(2)
                             }
                         }

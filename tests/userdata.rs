@@ -3,10 +3,7 @@ use std::collections::HashMap;
 use std::string::String as StdString;
 use std::sync::Arc;
 
-#[cfg(feature = "lua54")]
-use std::sync::atomic::{AtomicI64, Ordering};
-
-use mlua::{
+use mlua_luau::{
     AnyUserData, Error, ExternalError, Function, Lua, MetaMethod, Nil, ObjectLike, Result, String, UserData,
     UserDataFields, UserDataMethods, UserDataRef, Value, Variadic,
 };
@@ -877,7 +874,7 @@ fn test_userdata_derive() -> Result<()> {
 
     // Simple struct
 
-    #[derive(Clone, Copy, mlua::FromLua)]
+    #[derive(Clone, Copy, mlua_luau::FromLua)]
     struct MyUserData(i32);
 
     lua.register_userdata_type::<MyUserData>(|reg| {
@@ -889,7 +886,7 @@ fn test_userdata_derive() -> Result<()> {
 
     // More complex struct where generics and where clause
 
-    #[derive(Clone, Copy, mlua::FromLua)]
+    #[derive(Clone, Copy, mlua_luau::FromLua)]
     struct MyUserData2<'a, T: ?Sized>(&'a T)
     where
         T: Copy;

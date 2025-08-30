@@ -13,12 +13,12 @@ pub fn from_lua(input: TokenStream) -> TokenStream {
     };
 
     quote! {
-      impl #impl_generics ::mlua::FromLua for #ident #ty_generics #where_clause {
+      impl #impl_generics ::mlua_luau::FromLua for #ident #ty_generics #where_clause {
         #[inline]
-        fn from_lua(value: ::mlua::Value, _: &::mlua::Lua) -> ::mlua::Result<Self> {
+        fn from_lua(value: ::mlua_luau::Value, _: &::mlua_luau::Lua) -> ::mlua_luau::Result<Self> {
           match value {
-            ::mlua::Value::UserData(ud) => Ok(ud.borrow::<Self>()?.clone()),
-            _ => Err(::mlua::Error::FromLuaConversionError {
+            ::mlua_luau::Value::UserData(ud) => Ok(ud.borrow::<Self>()?.clone()),
+            _ => Err(::mlua_luau::Error::FromLuaConversionError {
                 from: value.type_name(),
                 to: #ident_str.to_string(),
                 message: None,

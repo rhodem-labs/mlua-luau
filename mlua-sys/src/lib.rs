@@ -8,6 +8,8 @@
 
 use std::os::raw::c_int;
 
+pub use luau::*;
+
 pub const LUA_MAX_UPVALUES: c_int = 200;
 
 // I believe `luaL_traceback` < 5.4 requires this much free stack to not error.

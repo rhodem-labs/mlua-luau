@@ -114,8 +114,8 @@ impl Function {
             lua.push_error_traceback();
             let stack_start = ffi::lua_gettop(state);
             // Push function and the arguments
-            lua.push_ref(&self.0);
-            let nargs = args.push_into_stack_multi(&lua)?;
+            lua.push_ref(&self.0, state);
+            let nargs = args.push_into_stack_multi(&lua, state)?;
             // Call the function
             let ret = ffi::lua_pcall(state, nargs, ffi::LUA_MULTRET, stack_start);
             if ret != ffi::LUA_OK {
@@ -123,7 +123,7 @@ impl Function {
             }
             // Get the results
             let nresults = ffi::lua_gettop(state) - stack_start;
-            R::from_stack_multi(nresults, &lua)
+            R::from_stack_multi(nresults, &lua, state)
         }
     }
 
@@ -233,7 +233,7 @@ impl Function {
 
             ffi::lua_pushinteger(state, nargs as ffi::lua_Integer);
             for arg in &args {
-                lua.push_value(arg)?;
+                lua.push_value(arg, state)?;
             }
             protect_lua!(state, nargs + 1, 1, fn(state) {
                 ffi::lua_pushcclosure(state, args_wrapper_impl, ffi::lua_gettop(state));
@@ -268,7 +268,7 @@ impl Function {
             let _sg = StackGuard::new(state);
             assert_stack(state, 1);
 
-            lua.push_ref(&self.0);
+            lua.push_ref(&self.0, state);
             if ffi::lua_iscfunction(state, -1) != 0 {
                 return None;
             }
@@ -295,12 +295,12 @@ impl Function {
             let _sg = StackGuard::new(state);
             check_stack(state, 2)?;
 
-            lua.push_ref(&self.0);
+            lua.push_ref(&self.0, state);
             if ffi::lua_iscfunction(state, -1) != 0 {
                 return Ok(false);
             }
 
-            lua.push_ref(&env.0);
+            lua.push_ref(&env.0, state);
             ffi::lua_setfenv(state, -2);
 
             Ok(true)
@@ -320,7 +320,7 @@ impl Function {
             assert_stack(state, 1);
 
             let mut ar: ffi::lua_Debug = mem::zeroed();
-            lua.push_ref(&self.0);
+            lua.push_ref(&self.0, state);
             let res = ffi::lua_getinfo(state, -1, cstr!("sn"), &mut ar);
             mlua_assert!(res != 0, "lua_getinfo failed with `>Sn`");
 
@@ -383,7 +383,7 @@ impl Function {
             let _sg = StackGuard::new(state);
             assert_stack(state, 1);
 
-            lua.push_ref(&self.0);
+            lua.push_ref(&self.0, state);
             let func = RefCell::new(func);
             let func_ptr = &func as *const RefCell<F> as *mut c_void;
             ffi::lua_getcoverage(state, -1, func_ptr, callback::<F>);
@@ -413,7 +413,7 @@ impl Function {
             let _sg = StackGuard::new(state);
             check_stack(state, 2)?;
 
-            lua.push_ref(&self.0);
+            lua.push_ref(&self.0, state);
             if ffi::lua_iscfunction(state, -1) != 0 {
                 return Ok(self.clone());
             }
@@ -444,8 +444,9 @@ impl Function {
         R: IntoLuaMulti,
     {
         WrappedFunction(Box::new(move |lua, nargs| unsafe {
-            let args = A::from_stack_args(nargs, 1, None, lua)?;
-            func.call(args)?.push_into_stack_multi(lua)
+            let state = lua.state();
+            let args = A::from_stack_args(nargs, 1, None, lua, state)?;
+            func.call(args)?.push_into_stack_multi(lua, state)
         }))
     }
 
@@ -459,8 +460,9 @@ impl Function {
         let func = RefCell::new(func);
         WrappedFunction(Box::new(move |lua, nargs| unsafe {
             let mut func = func.try_borrow_mut().map_err(|_| Error::RecursiveMutCallback)?;
-            let args = A::from_stack_args(nargs, 1, None, lua)?;
-            func.call(args)?.push_into_stack_multi(lua)
+            let state = lua.state();
+            let args = A::from_stack_args(nargs, 1, None, lua, state)?;
+            func.call(args)?.push_into_stack_multi(lua, state)
         }))
     }
 
@@ -476,8 +478,9 @@ impl Function {
         A: FromLuaMulti,
     {
         WrappedFunction(Box::new(move |lua, nargs| unsafe {
-            let args = A::from_stack_args(nargs, 1, None, lua)?;
-            func.call(args).push_into_stack_multi(lua)
+            let state = lua.state();
+            let args = A::from_stack_args(nargs, 1, None, lua, state)?;
+            func.call(args).push_into_stack_multi(lua, state)
         }))
     }
 
@@ -494,8 +497,9 @@ impl Function {
         let func = RefCell::new(func);
         WrappedFunction(Box::new(move |lua, nargs| unsafe {
             let mut func = func.try_borrow_mut().map_err(|_| Error::RecursiveMutCallback)?;
-            let args = A::from_stack_args(nargs, 1, None, lua)?;
-            func.call(args).push_into_stack_multi(lua)
+            let state = lua.state();
+            let args = A::from_stack_args(nargs, 1, None, lua, state)?;
+            func.call(args).push_into_stack_multi(lua, state)
         }))
     }
 
@@ -510,13 +514,15 @@ impl Function {
         R: IntoLuaMulti,
     {
         WrappedAsyncFunction(Box::new(move |rawlua, nargs| unsafe {
-            let args = match A::from_stack_args(nargs, 1, None, rawlua) {
+            let args = match A::from_stack_args(nargs, 1, None, rawlua, rawlua.state()) {
                 Ok(args) => args,
                 Err(e) => return Box::pin(future::ready(Err(e))),
             };
             let lua = rawlua.lua();
             let fut = func.call(args);
-            Box::pin(async move { fut.await?.push_into_stack_multi(lua.raw_lua()) })
+            Box::pin(async move {
+                fut.await?.push_into_stack_multi(lua.raw_lua(), lua.raw_lua().state()) // TODO: fix this hacky workaround for state
+            })
         }))
     }
 
@@ -533,13 +539,15 @@ impl Function {
         A: FromLuaMulti,
     {
         WrappedAsyncFunction(Box::new(move |rawlua, nargs| unsafe {
-            let args = match A::from_stack_args(nargs, 1, None, rawlua) {
+            let args = match A::from_stack_args(nargs, 1, None, rawlua, rawlua.state()) {
                 Ok(args) => args,
                 Err(e) => return Box::pin(future::ready(Err(e))),
             };
             let lua = rawlua.lua();
             let fut = func.call(args);
-            Box::pin(async move { fut.await.push_into_stack_multi(lua.raw_lua()) })
+            Box::pin(async move {
+                fut.await.push_into_stack_multi(lua.raw_lua(), lua.raw_lua().state()) // TODO: fix this hacky workaround for state
+            })
         }))
     }
 }

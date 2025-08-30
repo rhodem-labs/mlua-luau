@@ -3,7 +3,7 @@ use std::os::raw::c_void;
 use std::ptr;
 use std::string::String as StdString;
 
-use mlua::{Error, LightUserData, Lua, MultiValue, Result, UserData, UserDataMethods, Value};
+use mlua_luau::{Error, LightUserData, Lua, MultiValue, Result, UserData, UserDataMethods, Value};
 
 #[test]
 fn test_value_eq() -> Result<()> {
@@ -144,12 +144,12 @@ fn test_value_to_string() -> Result<()> {
     assert_eq!(Value::Number(34.59).type_name(), "number");
     #[cfg(not(feature = "vector4"))]
     assert_eq!(
-        Value::Vector(mlua::Vector::new(10.0, 11.1, 12.2)).to_string()?,
+        Value::Vector(mlua_luau::Vector::new(10.0, 11.1, 12.2)).to_string()?,
         "vector(10, 11.1, 12.2)"
     );
     #[cfg(not(feature = "vector4"))]
     assert_eq!(
-        Value::Vector(mlua::Vector::new(10.0, 11.1, 12.2)).type_name(),
+        Value::Vector(mlua_luau::Vector::new(10.0, 11.1, 12.2)).type_name(),
         "vector"
     );
     #[cfg(feature = "vector4")]
@@ -200,7 +200,7 @@ fn test_value_to_string() -> Result<()> {
 
     // Set `__tostring` metamethod for buffer
     let mt = lua.load("{__tostring = buffer.tostring}").eval()?;
-    lua.set_type_metatable::<mlua::Buffer>(mt);
+    lua.set_type_metatable::<mlua_luau::Buffer>(mt);
     assert_eq!(buf.to_string()?, "hello");
 
     Ok(())

@@ -198,7 +198,7 @@ extern crate mlua_derive;
 /// Everything else should work.
 #[cfg(feature = "macros")]
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
-pub use mlua_derive::chunk;
+pub use mlua_macros::chunk;
 
 /// Derive [`FromLua`] for a Rust type.
 ///
@@ -206,7 +206,7 @@ pub use mlua_derive::chunk;
 /// and clone.
 #[cfg(feature = "macros")]
 #[cfg_attr(docsrs, doc(cfg(feature = "macros")))]
-pub use mlua_derive::FromLua;
+pub use mlua_macros::FromLua;
 
 /// Registers Lua module entrypoint.
 ///

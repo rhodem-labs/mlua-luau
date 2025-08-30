@@ -150,7 +150,7 @@ impl Value {
             let _guard = StackGuard::new(state);
             check_stack(state, 3)?;
 
-            lua.push_ref(vref);
+            lua.push_ref(vref, state);
             protect_lua!(state, 1, 1, fn(state) {
                 ffi::luaL_tolstring(state, -1, ptr::null_mut());
             })?;

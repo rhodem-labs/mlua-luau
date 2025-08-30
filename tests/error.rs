@@ -1,7 +1,7 @@
 use std::error::Error as _;
 use std::{fmt, io};
 
-use mlua::{Error, ErrorContext, Lua, Result};
+use mlua_luau::{Error, ErrorContext, Lua, Result};
 
 #[test]
 fn test_error_context() -> Result<()> {

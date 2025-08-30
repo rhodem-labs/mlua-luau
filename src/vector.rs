@@ -10,6 +10,49 @@ use serde::ser::{Serialize, SerializeTupleStruct, Serializer};
 #[derive(Debug, Default, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Vector(pub(crate) [f32; Self::SIZE]);
 
+impl Vector {
+    pub(crate) const SIZE: usize = if cfg!(feature = "vector4") { 4 } else { 3 };
+
+    /// Creates a new vector.
+    #[cfg(not(feature = "vector4"))]
+    pub const fn new(x: f32, y: f32, z: f32) -> Self {
+        Self([x, y, z])
+    }
+
+    /// Creates a new vector.
+    #[cfg(feature = "vector4")]
+    pub const fn new(x: f32, y: f32, z: f32, w: f32) -> Self {
+        Self([x, y, z, w])
+    }
+
+    /// Creates a new vector with all components set to `0.0`.
+    pub const fn zero() -> Self {
+        Self([0.0; Self::SIZE])
+    }
+
+    /// Returns 1st component of the vector.
+    pub const fn x(&self) -> f32 {
+        self.0[0]
+    }
+
+    /// Returns 2nd component of the vector.
+    pub const fn y(&self) -> f32 {
+        self.0[1]
+    }
+
+    /// Returns 3rd component of the vector.
+    pub const fn z(&self) -> f32 {
+        self.0[2]
+    }
+
+    /// Returns 4th component of the vector.
+    #[cfg(any(feature = "vector4", doc))]
+    #[cfg_attr(docsrs, doc(cfg(feature = "vector4")))]
+    pub const fn w(&self) -> f32 {
+        self.0[3]
+    }
+}
+
 impl fmt::Display for Vector {
     #[rustfmt::skip]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

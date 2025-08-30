@@ -25,6 +25,7 @@ members = [
 ]
 
 [features]
+default = ["async", "send", "serde", "macros"]
 vector4 = ["ffi/vector4"]
 async = ["dep:futures-util"]
 send = ["error-send"]
@@ -80,31 +81,3 @@ required-features = ["async"]
 name = "serde"
 harness = false
 required-features = ["serde"]
-
-[[example]]
-name = "async_http_client"
-required-features = ["async", "macros"]
-
-[[example]]
-name = "async_http_reqwest"
-required-features = ["async", "serde", "macros"]
-
-[[example]]
-name = "async_http_server"
-required-features = ["async", "macros", "send"]
-
-[[example]]
-name = "async_tcp_server"
-required-features = ["async", "macros", "send"]
-
-[[example]]
-name = "guided_tour"
-required-features = ["macros"]
-
-[[example]]
-name = "serde"
-required-features = ["serde"]
-
-[[example]]
-name = "userdata"
-required-features = ["macros"]

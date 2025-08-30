@@ -1,4 +1,4 @@
-# mlua
+# mlua-luau
 [![Build Status]][github-actions] [![Latest Version]][crates.io] [![API Documentation]][docs.rs] [![Coverage Status]][codecov.io] ![MSRV]
 
 [Build Status]: https://github.com/mlua-rs/mlua/workflows/CI/badge.svg

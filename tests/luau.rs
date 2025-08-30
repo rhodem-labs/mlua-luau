@@ -4,7 +4,7 @@ use std::os::raw::c_void;
 use std::sync::atomic::{AtomicBool, AtomicPtr, AtomicU64, Ordering};
 use std::sync::Arc;
 
-use mlua::{
+use mlua_luau::{
     Compiler, Error, Function, Lua, LuaOptions, Result, StdLib, Table, ThreadStatus, Value, Vector, VmState,
 };
 

@@ -1,6 +1,6 @@
 use std::io::{Read, Seek, SeekFrom, Write};
 
-use mlua::{Lua, Result, Value};
+use mlua_luau::{Lua, Result, Value};
 
 #[test]
 fn test_buffer() -> Result<()> {
