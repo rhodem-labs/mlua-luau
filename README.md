@@ -21,6 +21,14 @@ WebAssembly (WASM) is supported through `wasm32-unknown-emscripten` target for a
 [GitHub Actions]: https://github.com/rhodem-labs/ulua/actions
 [Luau]: https://luau.org
 
+This repository is a fork of `mlua` with a greater focus on Luau, with the following changes (so far):
+
+- Thread stack optimizations and bug fixes:
+  - Removes unnecessary copies of the main thread stack to improve resume/yield performance.
+- Improved adherence to Luau spec to minimize UB and allow for a more easily sandboxed Luau environment:
+  - Removal of the `__gc` metamethod on userdata; although implemented by mlua, [should not be supported in Luau](https://luau.org/sandbox#__gc) due to memory safety and optimization considerations.
+  - Although only deprecated in Luau, `collectgarbage` has been fully removed here in favor of [Luau]'s [built-in](https://luau.org/library#global-functions) `gcinfo` function.
+
 ## Usage
 
 ### Feature flags
