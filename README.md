@@ -7,7 +7,7 @@
 [crates.io]: https://crates.io/crates/ulua
 [API Documentation]: https://docs.rs/ulua/badge.svg
 [docs.rs]: https://docs.rs/ulua
-[Coverage Status]: https://codecov.io/gh/ulua/branch/main/graph/badge.svg?token=99339FS1CG
+[Coverage Status]: https://codecov.io/gh/rhodem-labs/ulua/graph/badge.svg?token=AK27JDAXAV
 [codecov.io]: https://codecov.io/gh/rhodem-labs/ulua
 [MSRV]: https://img.shields.io/badge/rust-1.79+-brightgreen.svg?&logo=rust
 
