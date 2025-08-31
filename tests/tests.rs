@@ -708,8 +708,7 @@ fn test_drop_registry_value() -> Result<()> {
 
     drop(r);
     lua.expire_registry_values();
-
-    lua.load(r#"collectgarbage("collect")"#).exec()?;
+    lua.gc_collect()?; // force drop via gc
 
     assert_eq!(Arc::strong_count(&rc), 1);
 

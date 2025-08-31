@@ -382,7 +382,6 @@ impl Lua {
     /// - Set globals to read-only (and activates safeenv)
     /// - Setup local environment table that performs writes locally and proxies reads to the global
     ///   environment.
-    /// - Allow only `count` mode in `collectgarbage` function.
     ///
     /// # Examples
     ///

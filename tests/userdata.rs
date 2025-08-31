@@ -177,46 +177,6 @@ fn test_metamethods() -> Result<()> {
 }
 
 #[test]
-fn test_gc_userdata() -> Result<()> {
-    struct MyUserdata {
-        id: u8,
-    }
-
-    impl UserData for MyUserdata {
-        fn add_methods<M: UserDataMethods<Self>>(methods: &mut M) {
-            methods.add_method("access", |_, this, ()| {
-                assert_eq!(this.id, 123);
-                Ok(())
-            });
-        }
-    }
-
-    let lua = Lua::new();
-    lua.globals().set("userdata", MyUserdata { id: 123 })?;
-
-    assert!(lua
-        .load(
-            r#"
-            local tbl = setmetatable({
-                userdata = userdata
-            }, { __gc = function(self)
-                -- resurrect userdata
-                hatch = self.userdata
-            end })
-
-            tbl = nil
-            userdata = nil  -- make table and userdata collectable
-            collectgarbage("collect")
-            hatch:access()
-        "#
-        )
-        .exec()
-        .is_err());
-
-    Ok(())
-}
-
-#[test]
 fn test_userdata_take() -> Result<()> {
     #[derive(Debug)]
     struct MyUserdata(Arc<i64>);

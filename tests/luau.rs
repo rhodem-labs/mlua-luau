@@ -195,13 +195,8 @@ fn test_sandbox() -> Result<()> {
     co.sandbox()?;
     assert_eq!(co.resume::<Option<i32>>(())?, Some(123));
 
-    // collectgarbage should be restricted in sandboxed mode
-    let collectgarbage = lua.globals().get::<Function>("collectgarbage")?;
-    for arg in ["collect", "stop", "restart", "step", "isrunning"] {
-        let err = collectgarbage.call::<()>(arg).err().unwrap().to_string();
-        assert!(err.contains("collectgarbage called with invalid option"));
-    }
-    assert!(collectgarbage.call::<u64>("count").unwrap() > 0);
+    let gcinfo = lua.globals().get::<Function>("gcinfo")?;
+    assert!(gcinfo.call::<u64>(()).unwrap() > 0);
 
     lua.sandbox(false)?;
 
@@ -211,11 +206,6 @@ fn test_sandbox() -> Result<()> {
     // Readonly flags should be cleared as well
     let table = lua.globals().get::<Table>("table")?;
     table.set("test", "test")?;
-
-    // collectgarbage should work now
-    for arg in ["collect", "stop", "restart", "count", "step", "isrunning"] {
-        collectgarbage.call::<()>(arg).unwrap();
-    }
 
     Ok(())
 }
