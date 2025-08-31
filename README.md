@@ -1,7 +1,7 @@
 # ulua
 [![Build Status]][github-actions] [![Latest Version]][crates.io] [![API Documentation]][docs.rs] [![Coverage Status]][codecov.io] ![MSRV]
 
-[Build Status]: https://github.com/rhodem-labs/ulua/workflows/CI/badge.svg
+[Build Status]: https://github.com/rhodem-labs/ulua/actions/workflows/main.yml/badge.svg
 [github-actions]: https://github.com/rhodem-labs/ulua/actions
 [Latest Version]: https://img.shields.io/crates/v/ulua.svg
 [crates.io]: https://crates.io/crates/ulua
