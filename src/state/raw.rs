@@ -916,9 +916,6 @@ impl RawLua {
             }
         }
 
-        ffi::lua_pushcfunction(state, registry.destructor);
-        rawset_field(state, metatable_index, "__gc")?;
-
         init_userdata_metatable(
             state,
             metatable_index,

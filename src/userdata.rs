@@ -149,7 +149,6 @@ impl MetaMethod {
 
     pub(crate) fn validate(name: &str) -> Result<&str> {
         match name {
-            "__gc" => Err(Error::MetaMethodRestricted(name.to_string())),
             "__metatable" => Err(Error::MetaMethodRestricted(name.to_string())),
             _ if name.starts_with("__ulua") => Err(Error::MetaMethodRestricted(name.to_string())),
             name => Ok(name),

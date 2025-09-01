@@ -507,12 +507,6 @@ fn test_metatable() -> Result<()> {
     let ud: AnyUserData = globals.get("ud")?;
     let metatable = ud.metatable()?;
 
-    match metatable.get::<Value>("__gc") {
-        Ok(_) => panic!("expected MetaMethodRestricted, got no error"),
-        Err(Error::MetaMethodRestricted(_)) => {}
-        Err(e) => panic!("expected MetaMethodRestricted, got {:?}", e),
-    }
-
     match metatable.set(MetaMethod::Index, Nil) {
         Ok(_) => panic!("expected MetaMethodRestricted, got no error"),
         Err(Error::MetaMethodRestricted(_)) => {}
