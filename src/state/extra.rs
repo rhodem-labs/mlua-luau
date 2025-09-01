@@ -37,6 +37,7 @@ pub(crate) struct ExtraData {
     pub(super) pending_userdata_reg: FxHashMap<TypeId, RawUserDataRegistry>,
     pub(super) registered_userdata_t: FxHashMap<TypeId, c_int>,
     pub(super) registered_userdata_mt: FxHashMap<*const c_void, Option<TypeId>>,
+    pub(super) registered_userdata_dtors: FxHashMap<TypeId, ffi::lua_CFunction>,
     pub(super) last_checked_userdata_mt: (*const c_void, Option<TypeId>),
 
     // When Lua instance dropped, setting `None` would prevent collecting `RegistryKey`s
@@ -138,6 +139,7 @@ impl ExtraData {
             pending_userdata_reg: FxHashMap::default(),
             registered_userdata_t: FxHashMap::default(),
             registered_userdata_mt: FxHashMap::default(),
+            registered_userdata_dtors: FxHashMap::default(),
             last_checked_userdata_mt: (ptr::null(), None),
             registry_unref_list: Arc::new(Mutex::new(Some(Vec::new()))),
             app_data: AppData::default(),
@@ -183,32 +185,11 @@ impl ExtraData {
     pub(crate) unsafe fn get(state: *mut ffi::lua_State) -> *mut Self {
         // In the main app we can use `lua_callbacks` to access ExtraData
         return (*ffi::lua_callbacks(state)).userdata as *mut _;
-
-        /*
-        let extra_key = &EXTRA_REGISTRY_KEY as *const u8 as *const c_void;
-        if ffi::lua_rawgetp(state, ffi::LUA_REGISTRYINDEX, extra_key) != ffi::LUA_TUSERDATA {
-            // `ExtraData` can be null only when Lua state is foreign.
-            // This case in used in `Lua::try_from_ptr()`.
-            ffi::lua_pop(state, 1);
-            return ptr::null_mut();
-        }
-        let extra_ptr = ffi::lua_touserdata(state, -1) as *mut Rc<UnsafeCell<ExtraData>>;
-        ffi::lua_pop(state, 1);
-        (*extra_ptr).get()
-        */
     }
 
     unsafe fn store(extra: &XRc<UnsafeCell<Self>>, state: *mut ffi::lua_State) -> Result<()> {
         (*ffi::lua_callbacks(state)).userdata = extra.get() as *mut _;
         return Ok(());
-
-        /*
-        push_internal_userdata(state, XRc::clone(extra), true)?;
-        protect_lua!(state, 1, 0, fn(state) {
-            let extra_key = &EXTRA_REGISTRY_KEY as *const u8 as *const c_void;
-            ffi::lua_rawsetp(state, ffi::LUA_REGISTRYINDEX, extra_key);
-        })
-        */
     }
 
     #[inline(always)]
@@ -224,6 +205,11 @@ impl ExtraData {
     #[inline(always)]
     pub(super) unsafe fn weak(&self) -> &WeakLua {
         self.weak.assume_init_ref()
+    }
+
+    #[inline(always)]
+    pub(crate) unsafe fn get_userdata_dtor(&self, type_id: TypeId) -> Option<ffi::lua_CFunction> {
+        self.registered_userdata_dtors.get(&type_id).copied()
     }
 
     /// Pops a reference from top of the auxiliary stack and move it to a first free slot.

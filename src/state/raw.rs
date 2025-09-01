@@ -100,6 +100,11 @@ impl RawLua {
     }
 
     #[inline(always)]
+    pub(crate) fn extra(&self) -> *mut ExtraData {
+        self.extra.get()
+    }
+
+    #[inline(always)]
     pub(crate) fn main_state(&self) -> *mut ffi::lua_State {
         self.main_state
             .map(|state| state.as_ptr())
@@ -761,6 +766,13 @@ impl RawLua {
 
     pub(crate) unsafe fn create_userdata_metatable(&self, registry: RawUserDataRegistry, state: *mut ffi::lua_State) -> Result<Integer> {
         let type_id = registry.type_id;
+
+        // register the destructor
+        if let Some(type_id) = type_id {
+            (*self.extra.get())
+                .registered_userdata_dtors
+                .insert(type_id, registry.destructor);
+        }
 
         self.push_userdata_metatable(registry, state)?;
 

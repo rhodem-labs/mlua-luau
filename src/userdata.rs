@@ -587,16 +587,30 @@ impl AnyUserData {
             let _sg = StackGuard::new(state);
             check_stack(state, 3)?;
 
-            lua.push_userdata_ref(&self.0, state)?;
-            protect_lua!(state, 1, 1, fn(state) {
-                if ffi::luaL_callmeta(state, -1, cstr!("__gc")) == 0 {
-                    ffi::lua_pushboolean(state, 0);
-                }
-            })?;
-            if ffi::lua_isboolean(state, -1) != 0 && ffi::lua_toboolean(state, -1) != 0 {
-                return Ok(());
+            // Workaround for not having `__gc`
+            match lua.get_userdata_ref_type_id(&self.0)? {
+                Some(type_id) => {
+                    // Get out the destructor from extra
+                    let dtor = match (&(*lua.extra())).get_userdata_dtor(type_id) {
+                        Some(dtor) => dtor,
+                        None => return Err(Error::UserDataTypeMismatch),
+                    };
+
+                    // Call the destructor
+                    protect_lua!(state, 0, 1, |state| {
+                        ffi::lua_pushcfunction(state, dtor);
+                        lua.push_ref(&self.0, state);
+                        ffi::lua_call(state, 1, 1);
+                    })?;
+
+                    if ffi::lua_isboolean(state, -1) != 0 && ffi::lua_toboolean(state, -1) != 0 {
+                        return Ok(())
+                    }
+
+                    return Err(Error::UserDataBorrowMutError);
+                },
+                None => return Err(Error::UserDataTypeMismatch),
             }
-            Err(Error::UserDataBorrowMutError)
         }
     }
 
