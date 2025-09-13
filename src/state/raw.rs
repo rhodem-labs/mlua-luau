@@ -879,6 +879,7 @@ impl RawLua {
         }
 
         // Create methods namecall table
+        let mut methods_map = None;
         if registry.enable_namecall {
             let map: &mut rustc_hash::FxHashMap<_, crate::types::CallbackPtr> =
                 methods_map.get_or_insert_with(Default::default);
