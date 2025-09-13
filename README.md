@@ -17,7 +17,7 @@
 [Benchmarks]: https://github.com/khvzak/script-bench-rs
 [FAQ]: FAQ.md
 
-`mlua` is a set of bindings to the [Lua](https://www.lua.org) programming language for Rust with a goal to provide a
+`ulua` is a set of bindings to the [Lua](https://www.lua.org) programming language for Rust with a goal to provide a
 _safe_ (as much as possible), high level, easy to use, practical and flexible API.
 
 `ulua` is tested on Windows/macOS/Linux including module mode in [GitHub Actions] on `x86_64` platforms and cross-compilation to `aarch64` (other targets are also supported).
