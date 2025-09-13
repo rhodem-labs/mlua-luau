@@ -1182,7 +1182,6 @@ fn test_userdata_wrappers() -> Result<()> {
     Ok(())
 }
 
-#[cfg(feature = "luau")]
 #[test]
 fn test_userdata_namecall() -> Result<()> {
     let lua = Lua::new();

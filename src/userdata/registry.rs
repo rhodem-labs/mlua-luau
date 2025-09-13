@@ -57,7 +57,6 @@ pub(crate) struct RawUserDataRegistry {
     pub(crate) type_id: Option<TypeId>,
     pub(crate) type_name: StdString,
 
-    #[cfg(feature = "luau")]
     pub(crate) enable_namecall: bool,
 }
 
@@ -103,7 +102,6 @@ impl<T> UserDataRegistry<T> {
             destructor: super::util::destroy_userdata_storage::<T>,
             type_id: r#type.type_id(),
             type_name: short_type_name::<T>(),
-            #[cfg(feature = "luau")]
             enable_namecall: false,
         };
 
@@ -126,8 +124,6 @@ impl<T> UserDataRegistry<T> {
     ///
     /// Use with caution.
     #[doc(hidden)]
-    #[cfg(feature = "luau")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "luau")))]
     pub fn enable_namecall(&mut self) {
         self.raw.enable_namecall = true;
     }

@@ -377,7 +377,6 @@ fn userdata_call_method_complex(c: &mut Criterion) {
                 Ok(this.0)
             });
 
-            #[cfg(feature = "luau")]
             registry.enable_namecall();
         }
     }

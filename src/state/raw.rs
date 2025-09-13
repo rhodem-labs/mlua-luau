@@ -879,9 +879,6 @@ impl RawLua {
         }
 
         // Create methods namecall table
-        #[cfg_attr(not(feature = "luau"), allow(unused_mut))]
-        let mut methods_map = None;
-        #[cfg(feature = "luau")]
         if registry.enable_namecall {
             let map: &mut rustc_hash::FxHashMap<_, crate::types::CallbackPtr> =
                 methods_map.get_or_insert_with(Default::default);
