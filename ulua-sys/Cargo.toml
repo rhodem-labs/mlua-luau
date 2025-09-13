@@ -1,6 +1,6 @@
 [package]
 name = "ulua-sys"
-version = "0.8.4"
+version = "0.8.5"
 authors = ["Luc Rodriguez <labs@rhodem.com>"]
 rust-version = "1.71"
 edition = "2021"

@@ -1,6 +1,6 @@
 [package]
 name = "ulua"
-version = "0.11.4" # remember to update ulua-macros
+version = "0.11.5" # remember to update ulua-macros
 authors = ["Luc Rodiguez <labs@rhodem.com>"]
 rust-version = "1.79.0"
 edition = "2021"
