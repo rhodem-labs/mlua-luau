@@ -11,12 +11,18 @@
 [codecov.io]: https://codecov.io/gh/rhodem-labs/ulua
 [MSRV]: https://img.shields.io/badge/rust-1.79+-brightgreen.svg?&logo=rust
 
-`ulua` is a set of bindings to the [Lua](https://www.lua.org) programming language for Rust with a goal to provide a
+[Guided Tour] | [Benchmarks] | [FAQ]
+
+[Guided Tour]: examples/guided_tour.rs
+[Benchmarks]: https://github.com/khvzak/script-bench-rs
+[FAQ]: FAQ.md
+
+`mlua` is a set of bindings to the [Lua](https://www.lua.org) programming language for Rust with a goal to provide a
 _safe_ (as much as possible), high level, easy to use, practical and flexible API.
 
 `ulua` is tested on Windows/macOS/Linux including module mode in [GitHub Actions] on `x86_64` platforms and cross-compilation to `aarch64` (other targets are also supported).
 
-WebAssembly (WASM) is supported through `wasm32-unknown-emscripten` target for all Lua/Luau versions excluding JIT.
+WebAssembly (WASM) is supported through the `wasm32-unknown-emscripten` target for all Lua/Luau versions excluding JIT.
 
 [GitHub Actions]: https://github.com/rhodem-labs/ulua/actions
 [Luau]: https://luau.org
@@ -33,8 +39,8 @@ This repository is a fork of `mlua` with a greater focus on Luau, with the follo
 
 ### Feature flags
 
-`ulua` uses feature flags to reduce the amount of dependencies and compiled code, and allow to choose only required set of features.
-Below is a list of the available feature flags. By default `ulua` does not enable any features.
+`mlua` uses feature flags to reduce the amount of dependencies and compiled code, and allow to choose only required set of features.
+Below is a list of the available feature flags. By default `mlua` does not enable any features.
 
 * `vector4`: enable [Luau]'s 4-dimensional vector.
 * `async`: enable async/await support (any executor can be used, eg. [tokio] or [async-std])
@@ -105,7 +111,7 @@ remain usable after a user generated panic, and such panics should not break int
 leak Lua stack space. This is mostly important to safely use `ulua` types in Drop impls, as you should not be
 using panics for general error handling.
 
-Below is a list of `ulua` behaviors that should be considered a bug.
+Below is a list of `mlua` behaviors that should be considered a bug.
 If you encounter them, a bug report would be very welcome:
 
   + If you can cause UB with `ulua` without typing the word "unsafe", this is a bug.

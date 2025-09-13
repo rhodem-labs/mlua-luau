@@ -136,7 +136,10 @@ pub use crate::{thread::AsyncThread, traits::LuaNativeAsyncFn};
 
 #[cfg(feature = "serde")]
 #[doc(inline)]
-pub use crate::serde::{de::Options as DeserializeOptions, ser::Options as SerializeOptions, LuaSerdeExt};
+pub use crate::{
+    serde::{de::Options as DeserializeOptions, ser::Options as SerializeOptions, LuaSerdeExt},
+    value::SerializableValue,
+};
 
 #[cfg(feature = "serde")]
 #[cfg_attr(docsrs, doc(cfg(feature = "serde")))]

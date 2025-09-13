@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use ulua::{
     AnyUserData, Error, ExternalError, Function, Lua, MetaMethod, Nil, ObjectLike, Result, String, UserData,
-    UserDataFields, UserDataMethods, UserDataRef, Value, Variadic,
+    UserDataFields, UserDataMethods, UserDataRef, UserDataRegistry, Value, Variadic,
 };
 
 #[test]
@@ -1178,6 +1178,61 @@ fn test_userdata_wrappers() -> Result<()> {
         assert_eq!(ud.0, 20);
         drop(ud);
     }
+
+    Ok(())
+}
+
+#[cfg(feature = "luau")]
+#[test]
+fn test_userdata_namecall() -> Result<()> {
+    let lua = Lua::new();
+
+    struct MyUserData;
+
+    impl UserData for MyUserData {
+        fn register(registry: &mut mlua::UserDataRegistry<Self>) {
+            registry.add_method("method", |_, _, ()| Ok("method called"));
+            registry.add_field_method_get("field", |_, _| Ok("field value"));
+
+            registry.add_meta_method(MetaMethod::Index, |_, _, key: StdString| Ok(key));
+
+            registry.enable_namecall();
+        }
+    }
+
+    let ud = lua.create_userdata(MyUserData)?;
+    lua.globals().set("ud", &ud)?;
+    lua.load(
+        r#"
+        assert(ud:method() == "method called")
+        assert(ud.field == "field value")
+        assert(ud.dynamic_field == "dynamic_field")
+        local ok, err = pcall(function() return ud:dynamic_field() end)
+        assert(tostring(err):find("attempt to call an unknown method 'dynamic_field'") ~= nil)
+        "#,
+    )
+    .exec()?;
+
+    ud.destroy()?;
+    let err = lua.load("ud:method()").exec().unwrap_err();
+    assert!(err.to_string().contains("userdata has been destructed"));
+
+    Ok(())
+}
+
+#[test]
+fn test_userdata_get_path() -> Result<()> {
+    let lua = Lua::new();
+
+    struct MyUd;
+    impl UserData for MyUd {
+        fn register(registry: &mut UserDataRegistry<Self>) {
+            registry.add_field("value", "userdata_value");
+        }
+    }
+
+    let ud = lua.create_userdata(MyUd)?;
+    assert_eq!(ud.get_path::<String>(".value")?, "userdata_value");
 
     Ok(())
 }

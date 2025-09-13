@@ -381,6 +381,7 @@ pub(crate) unsafe fn init_error_registry(state: *mut ffi::lua_State) -> Result<(
         "__call",
         "__tostring",
         "__iter",
+        "__namecall",
     ] {
         ffi::lua_pushvalue(state, -1);
         rawset_field(state, -3, method)?;
